@@ -2,8 +2,11 @@ name: Scan
 
 on:
   schedule:
-    # Every 30 minutes, Mon-Fri, 14:00-21:59 UTC (covers the US market, 2:30pm-9pm UK time in winter)
-    - cron: "*/30 14-21 * * 1-5"
+    # 3 updates a day, Mon-Fri: about 2:45pm, 5:30pm and 8:30pm UK time.
+    # Each is listed twice (summer + winter US time); scanner.py skips the wrong one.
+    - cron: "45 13,14 * * 1-5"
+    - cron: "30 16,17 * * 1-5"
+    - cron: "30 19,20 * * 1-5"
   workflow_dispatch:
 
 permissions:
@@ -30,4 +33,4 @@ jobs:
           git config user.name "scanner-bot"
           git config user.email "scanner-bot@users.noreply.github.com"
           git add docs/results.json
-          git diff --cached --quiet || (git commit -m "Update results" && git push)
+          git diff --cached --quiet || (git commit -m "Update results" && git pull --rebase && git push)

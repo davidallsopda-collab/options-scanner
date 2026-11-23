@@ -9,55 +9,100 @@
 <title>Call Scanner</title>
 <style>
   :root { --bg:#0f172a; --card:#1e293b; --line:#334155; --text:#e2e8f0; --dim:#94a3b8;
-          --green:#4ade80; --amber:#fbbf24; --red:#f87171; }
+          --accent:#38bdf8; --green:#4ade80; --amber:#fbbf24; --orange:#fdba74; }
   * { box-sizing: border-box; }
   body { margin:0; background:var(--bg); color:var(--text);
-         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-         padding: env(safe-area-inset-top) 14px calc(24px + env(safe-area-inset-bottom)); }
-  header { padding:16px 0 8px; display:flex; align-items:center; justify-content:space-between; gap:10px; }
-  h1 { font-size:22px; margin:0; }
-  button { background:var(--card); color:var(--text); border:1px solid var(--line);
-           border-radius:10px; padding:9px 14px; font-size:15px; }
-  #updated { color:var(--dim); font-size:14px; margin-bottom:14px; }
-  #updated.old { color:var(--amber); }
-  .stock { margin-bottom:22px; }
-  .stock h2 { font-size:18px; margin:0 0 8px; display:flex; justify-content:space-between; align-items:baseline; }
-  .spot { color:var(--dim); font-size:15px; font-weight:400; }
-  .card { background:var(--card); border:1px solid var(--line); border-radius:12px;
-          padding:12px 14px; margin-bottom:10px; }
-  .top { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:8px; }
-  .strike { font-size:18px; font-weight:600; }
-  .cost { font-size:18px; font-weight:600; }
-  .grid { display:grid; grid-template-columns:1fr 1fr; gap:6px 12px; font-size:14px; }
-  .grid span { color:var(--dim); }
-  .rise { font-weight:700; }
-  .rise.g { color:var(--green); } .rise.a { color:var(--amber); } .rise.r { color:var(--red); }
-  .none, .err { color:var(--dim); font-size:14px; padding:4px 2px; }
-  .err { color:var(--red); }
-  footer { color:var(--dim); font-size:12.5px; line-height:1.5; border-top:1px solid var(--line); padding-top:14px; }
+         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, sans-serif;
+         padding: env(safe-area-inset-top) 16px calc(28px + env(safe-area-inset-bottom)); max-width: 640px; margin: 0 auto; }
+  button, input { font-family: inherit; }
+  header { padding:18px 0 6px; display:flex; align-items:center; justify-content:space-between; gap:10px; }
+  h1 { font-size:22px; margin:0; font-weight:700; }
+  .sub { color:var(--dim); font-size:13px; line-height:1.45; margin:4px 0 0; }
+  .sub.old { color:var(--amber); }
+  .iconbtn { min-height:44px; padding:0 14px; border-radius:12px; border:1px solid var(--line);
+             background:var(--card); color:var(--text); font-size:14px; font-weight:600; cursor:pointer; }
+  .seg { display:flex; gap:8px; padding-top:6px; }
+  .seg button { flex:1; min-height:44px; background:none; border:0; border-bottom:2px solid transparent;
+                color:var(--dim); font-size:14px; font-weight:600; cursor:pointer; }
+  .seg button.on { border-bottom-color:var(--accent); color:var(--text); }
+  .tabs { display:flex; gap:8px; padding:12px 0; overflow-x:auto; }
+  .tabs button { flex:1; min-width:64px; min-height:44px; border-radius:12px; font-size:15px; font-weight:600;
+                 cursor:pointer; border:1px solid var(--line); background:var(--card); color:var(--text); }
+  .tabs button.on { background:var(--accent); border-color:var(--accent); color:var(--bg); }
+  .box { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:14px; margin-bottom:12px; }
+  .row { display:flex; align-items:baseline; justify-content:space-between; gap:10px; }
+  .big { font-size:20px; font-weight:700; }
+  .dim { color:var(--dim); }
+  .small { font-size:13px; line-height:1.45; }
+  .tag { font-size:12px; font-weight:700; letter-spacing:.05em; }
+  .linkbtn { display:flex; align-items:center; justify-content:center; min-height:44px; border:1px solid var(--accent);
+             color:var(--accent); border-radius:12px; text-decoration:none; font-size:15px; font-weight:600; margin-top:10px; }
+  .note { border:1px dashed #475569; border-radius:12px; padding:12px 14px; font-size:14px; color:#cbd5e1; line-height:1.5; margin-bottom:12px; }
+  .heads { color:var(--amber); }
+  details { margin-bottom:12px; }
+  summary { min-height:44px; display:flex; align-items:center; font-size:14px; font-weight:600; color:var(--accent); cursor:pointer; }
+  details ol { margin:0; padding-left:20px; font-size:14px; line-height:1.6; color:#cbd5e1; }
+  h3 { font-size:16px; margin:18px 0 8px; font-weight:700; }
+  .grid3 { display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:8px; padding-top:4px; }
+  .grid3 span.l { display:block; font-size:12px; color:var(--dim); }
+  .grid3 span.v { display:block; font-size:16px; font-weight:700; }
+  .g { color:var(--green); } .o { color:var(--orange); } .a { color:var(--amber); }
+  label { display:flex; flex-direction:column; gap:4px; font-size:13px; color:#cbd5e1; }
+  input { min-height:44px; width:100%; background:var(--bg); border:1px solid #475569; border-radius:10px;
+          color:var(--text); font-size:16px; padding:0 12px; }
+  .two { display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:10px; }
+  .primary { display:flex; align-items:center; justify-content:center; width:100%; min-height:48px; border-radius:12px; border:0;
+             background:var(--accent); color:var(--bg); font-size:16px; font-weight:700; cursor:pointer; margin-bottom:8px; }
+  .ghost { display:flex; align-items:center; justify-content:center; width:100%; min-height:44px; border-radius:12px; border:0;
+           background:none; color:var(--dim); font-size:14px; font-weight:600; cursor:pointer; }
+  footer { color:var(--dim); font-size:12px; line-height:1.55; border-top:1px solid var(--line); padding-top:14px; margin-top:8px; }
+  .hidden { display:none; }
 </style>
 </head>
 <body>
 <header>
   <h1>Call Scanner</h1>
-  <button id="refresh">Refresh</button>
+  <button class="iconbtn" id="gear" type="button">Settings</button>
 </header>
-<div id="updated">Loading...</div>
+<div class="sub" id="updated">Loading...</div>
+<div class="sub">Paper trading. Your targets are your own guesses, not predictions.</div>
+
+<nav class="seg" id="seg">
+  <button type="button" data-view="scan" class="on">Scanner</button>
+  <button type="button" data-view="targets">My targets</button>
+</nav>
+
 <main id="app"></main>
-<footer id="foot">
-  Call options on TSLA, MRVL, MU and SPCX. Data comes from Yahoo and can be delayed, so always check
-  the live price in Robinhood before buying. "Rise needed" is how far the stock must climb by expiry just
-  to break even. You can lose 100% of the cost if an option expires out of the money. Not financial advice.
+
+<footer>
+  Data comes from Yahoo, can be delayed, and long-dated prices are thin, so always check the live price in
+  Robinhood before trading. "Odds" and "worth on your date" are estimates from a standard options formula
+  (Black-Scholes) using each option's own volatility. They are a guide, not a promise. You can lose all of
+  the cost if a call expires worthless. Not financial advice.
 </footer>
 
 <script>
-function el(tag, cls, text) {
+/* ---------- tiny helpers ---------- */
+function h(tag, attrs, kids) {
   var e = document.createElement(tag);
-  if (cls) e.className = cls;
-  if (text !== undefined) e.textContent = text;
+  if (attrs) for (var k in attrs) {
+    if (k === "text") e.textContent = attrs[k];
+    else if (k === "class") e.className = attrs[k];
+    else if (k.slice(0, 2) === "on") e.addEventListener(k.slice(2), attrs[k]);
+    else e.setAttribute(k, attrs[k]);
+  }
+  (kids || []).forEach(function (c) { if (c) e.appendChild(typeof c === "string" ? document.createTextNode(c) : c); });
   return e;
 }
-
+function money(n) { return (n < 0 ? "-$" : "$") + Math.abs(Math.round(n)).toLocaleString("en-US"); }
+function px(n) { return "$" + Number(n).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+function strikeTxt(k) { return "$" + (k % 1 === 0 ? k.toLocaleString("en-US") : k.toFixed(2)); }
+function pct(n) { return (n >= 0 ? "+" : "") + Math.round(n) + "%"; }
+function fmtDate(s) {
+  var d = new Date(s + "T12:00:00");
+  return d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+}
+function daysUntil(s) { return Math.round((new Date(s + "T12:00:00") - new Date()) / 86400000); }
 function ago(iso) {
   var mins = Math.round((Date.now() - new Date(iso).getTime()) / 60000);
   if (mins < 2) return "just now";
@@ -67,103 +112,334 @@ function ago(iso) {
   return Math.round(hrs / 24) + " days ago";
 }
 
-function fmtDate(s) {
-  var d = new Date(s + "T00:00:00");
-  return d.toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" });
+/* ---------- options maths (Black-Scholes, 4% interest) ---------- */
+var RATE = 0.04;
+function ncdf(x) {
+  var t = 1 / (1 + 0.2316419 * Math.abs(x)), d = 0.3989423 * Math.exp(-x * x / 2);
+  var p = d * t * (0.3193815 + t * (-0.3565638 + t * (1.781478 + t * (-1.821256 + t * 1.330274))));
+  return x > 0 ? 1 - p : p;
+}
+function bsCall(S, K, T, s) {
+  if (T <= 0.0005) return Math.max(S - K, 0);
+  var sq = s * Math.sqrt(T), d1 = (Math.log(S / K) + (RATE + s * s / 2) * T) / sq, d2 = d1 - sq;
+  return S * ncdf(d1) - K * Math.exp(-RATE * T) * ncdf(d2);
+}
+function chanceAbove(S, level, T, s) {
+  if (T <= 0.0005) return S > level ? 1 : 0;
+  var sq = s * Math.sqrt(T);
+  return ncdf((Math.log(S / level) + (RATE - s * s / 2) * T) / sq);
 }
 
-function money(n) {
-  return "$" + Number(n).toLocaleString(undefined, { maximumFractionDigits: 0 });
+/* ---------- saved settings (this phone only) ---------- */
+var DEFAULTS = { budget: 1300, targets: {} };
+function loadSettings() {
+  try {
+    var s = JSON.parse(localStorage.getItem("callScanner") || "null");
+    if (s && typeof s === "object") return { budget: Number(s.budget) > 0 ? Number(s.budget) : DEFAULTS.budget, targets: s.targets || {} };
+  } catch (e) {}
+  return { budget: DEFAULTS.budget, targets: {} };
+}
+function saveSettings(s) { try { localStorage.setItem("callScanner", JSON.stringify(s)); } catch (e) {} }
+
+/* ---------- turn raw rows into friendly call objects ---------- */
+function prepare(t) {
+  (t.expiries || []).forEach(function (x) {
+    if (x.ready) return;
+    var atm = null;
+    x.calls = x.calls.map(function (r) {
+      return { k: r[0], bid: r[1], ask: r[2], last: r[3], iv: r[4], vol: r[5], oi: r[6] };
+    });
+    x.calls.forEach(function (c) {
+      c.price = c.ask > 0 ? c.ask : c.last;
+      c.cost = c.price * 100;
+      c.live = c.ask > 0;
+      if (c.iv >= 0.05 && (!atm || Math.abs(c.k - t.spot) < Math.abs(atm.k - t.spot))) atm = c;
+    });
+    var fallback = atm ? atm.iv : 0.6;
+    x.calls.forEach(function (c) { if (c.iv < 0.05) c.iv = fallback; });
+    x.calls.sort(function (a, b) { return a.k - b.k; });
+    x.ready = true;
+  });
+  return t;
 }
 
-function row(grid, label, value) {
-  var wrap = el("div");
-  wrap.appendChild(el("span", "", label + " "));
-  wrap.appendChild(document.createTextNode(value));
-  grid.appendChild(wrap);
+var FRAMES = [
+  { label: "6 months", days: 182 },
+  { label: "1 year", days: 365 },
+  { label: "18 months", days: 548 },
+  { label: "2 years", days: 730 }
+];
+
+function pickExpiry(t, targetDays) {
+  var best = null;
+  t.expiries.forEach(function (x) {
+    if (!best || Math.abs(x.days - targetDays) < Math.abs(best.days - targetDays)) best = x;
+  });
+  return best && Math.abs(best.days - targetDays) <= 120 ? best : null;
 }
 
-function render(data) {
-  var app = document.getElementById("app");
-  app.innerHTML = "";
+function describeCall(t, x, c) {
+  var T = x.days / 365, be = c.k + c.price;
+  return {
+    c: c, x: x, be: be,
+    rise: (be / t.spot - 1) * 100,
+    odds: chanceAbove(t.spot, be, T, c.iv) * 100
+  };
+}
 
-  var upd = document.getElementById("updated");
-  var ageHrs = (Date.now() - new Date(data.updated_utc).getTime()) / 3600000;
-  upd.textContent = "Updated " + ago(data.updated_utc) + " (" +
-    new Date(data.updated_utc).toLocaleString(undefined, { weekday: "short", hour: "2-digit", minute: "2-digit" }) + ")";
-  upd.className = ageHrs > 20 ? "old" : "";
-  if (ageHrs > 20) upd.textContent += " - market closed, showing last session";
+function scannerPicks(t, x, budget) {
+  var spot = t.spot, calls = x.calls.filter(function (c) { return c.price > 0; });
+  if (!calls.length) return { near: null, fit: null, cheapest: null };
+  var near = calls.reduce(function (b, c) { return Math.abs(c.k - spot) < Math.abs(b.k - spot) ? c : b; });
+  var afford = calls.filter(function (c) { return c.cost <= budget && c.k >= spot; });
+  var fit = null;
+  if (near.cost <= budget) {
+    var step = afford.filter(function (c) { return c.k >= spot * 1.1; });
+    fit = step.length ? step[0] : null;
+  } else {
+    fit = afford.length ? afford[0] : null;
+  }
+  var cheapest = calls.filter(function (c) { return c.k >= spot; })
+    .reduce(function (b, c) { return !b || c.cost < b.cost ? c : b; }, null);
+  return { near: near, fit: fit, cheapest: cheapest };
+}
 
-  data.tickers.forEach(function (t) {
-    var sec = el("section", "stock");
-    var h = el("h2", "", t.ticker);
-    if (t.spot) h.appendChild(el("span", "spot", "price $" + t.spot));
-    sec.appendChild(h);
+/* ---------- screens ---------- */
+var state = { data: null, view: "scan", tab: 0, settings: loadSettings(), open: false };
+var app = document.getElementById("app");
 
-    if (t.error) {
-      sec.appendChild(el("div", "err", "Couldn't scan this one: " + t.error));
-    } else if (!t.matches.length) {
-      sec.appendChild(el("div", "none", "Nothing matched your rules." + (t.why_none ? " " + t.why_none + "." : "")));
+function rhLink(symbol) {
+  return h("a", { class: "linkbtn", href: "https://robinhood.com/us/en/stocks/" + encodeURIComponent(symbol) + "/", target: "_blank", rel: "noopener",
+                  text: "Open " + symbol + " in Robinhood" });
+}
+
+function howTo() {
+  return h("details", null, [
+    h("summary", { text: "How to find a pick in Robinhood" }),
+    h("ol", null, [
+      h("li", { text: "Tap the Robinhood button above (or open the app and search the stock)." }),
+      h("li", { text: "On the stock page tap Trade, then Trade options." }),
+      h("li", { text: "Pick the expiry date shown on the card." }),
+      h("li", { text: "Choose Buy and Call, then find the strike price from the card." }),
+      h("li", { text: "Compare the price. This page uses Yahoo's data and it can be out of date, so Robinhood's live price is the one that counts. Menu names can change a little." })
+    ])
+  ]);
+}
+
+function statCell(label, value, cls) {
+  return h("div", null, [h("span", { class: "l", text: label }), h("span", { class: "v " + (cls || ""), text: value })]);
+}
+
+function scanCard(t, tagText, tagColor, p, budget) {
+  var over = p.c.cost > budget;
+  var kids = [
+    h("span", { class: "tag", style: "color:" + tagColor, text: tagText }),
+    h("div", { class: "row" }, [h("div", { class: "big", style: "font-weight:600", text: strikeTxt(p.c.k) + " call" }), h("div", { class: "big", text: money(p.c.cost) })]),
+    h("div", { class: "small dim", text: "Expires " + fmtDate(p.x.date) + (p.c.live ? "" : " (no live quote, last traded price)") }),
+    h("div", { class: "grid3" }, [
+      statCell("Break-even", px(p.be)),
+      statCell("Rise needed", p.rise.toFixed(0) + "%", p.rise < 10 ? "g" : (p.rise < 25 ? "a" : "o")),
+      statCell("Odds (est.)", p.odds < 1 ? "<1%" : Math.round(p.odds) + "%")
+    ])
+  ];
+  if (over) kids.push(h("div", { class: "small a", text: "Over your " + money(budget) + " limit. Shown so you can see the cost of being near today's price." }));
+  if (p.c.oi < 50) kids.push(h("div", { class: "small a", text: "Thin trading (" + p.c.oi + " open contracts), so the price you get may differ." }));
+  return h("div", { class: "box", style: "display:flex;flex-direction:column;gap:8px" }, kids);
+}
+
+function renderScanner(t) {
+  var budget = state.settings.budget;
+  var wrap = document.createDocumentFragment();
+  var top = h("div", { class: "box" }, [
+    h("div", { class: "row" }, [h("div", { class: "big", text: t.name + " (" + t.ticker + ")" }), h("div", { class: "dim", text: "Price now " + px(t.spot) })]),
+    rhLink(t.ticker),
+    h("div", { class: "small heads", style: "margin-top:10px", text: "Heads-up: Robinhood can't open a specific contract from a link. Use the steps below to find the pick." })
+  ]);
+  wrap.appendChild(top);
+  wrap.appendChild(howTo());
+
+  var lastDate = null;
+  FRAMES.forEach(function (f) {
+    wrap.appendChild(h("h3", { text: f.label }));
+    var x = pickExpiry(t, f.days);
+    if (!x) { wrap.appendChild(h("div", { class: "note", text: "Yahoo doesn't list options this far out for " + t.ticker + " yet." })); return; }
+    if (x.date === lastDate) { wrap.appendChild(h("div", { class: "note", text: "Same expiry as the one above (" + fmtDate(x.date) + "). Nothing closer is listed yet." })); return; }
+    lastDate = x.date;
+    var p = scannerPicks(t, x, budget);
+    if (!p.near) { wrap.appendChild(h("div", { class: "note", text: "No usable prices for this expiry." })); return; }
+    wrap.appendChild(scanCard(t, "NEAR TODAY'S PRICE", "#38bdf8", describeCall(t, x, p.near), budget));
+    if (p.fit) {
+      wrap.appendChild(scanCard(t, "FITS YOUR LIMIT · LONG SHOT", "#4ade80", describeCall(t, x, p.fit), budget));
     } else {
-      t.matches.forEach(function (m) {
-        var card = el("div", "card");
-        var top = el("div", "top");
-        top.appendChild(el("div", "strike", "$" + m.strike + " call"));
-        top.appendChild(el("div", "cost", money(m.cost_usd)));
-        card.appendChild(top);
-
-        var grid = el("div", "grid");
-        row(grid, "Expires", fmtDate(m.expiry) + " (" + m.days + "d)");
-        row(grid, "Break-even", "$" + m.breakeven);
-
-        var rw = el("div");
-        rw.appendChild(el("span", "", "Rise needed "));
-        var cls = m.needs_rise_pct < 10 ? "g" : (m.needs_rise_pct < 15 ? "a" : "r");
-        rw.appendChild(el("b", "rise " + cls, m.needs_rise_pct + "%"));
-        grid.appendChild(rw);
-
-        row(grid, "Volume", Number(m.volume).toLocaleString());
-        row(grid, "Open interest", Number(m.open_interest).toLocaleString());
-        row(grid, "Spread", m.spread_pct + "%");
-        row(grid, "Volatility", m.iv_pct + "%");
-        card.appendChild(grid);
-        sec.appendChild(card);
-      });
+      var msg = "Nothing under " + money(budget) + " here";
+      msg += p.cheapest ? ". The cheapest call above today's price is " + strikeTxt(p.cheapest.k) + " at " + money(p.cheapest.cost) + "." : ".";
+      wrap.appendChild(h("div", { class: "note", text: msg + " Try a bigger limit in Settings." }));
     }
-    app.appendChild(sec);
+  });
+  return wrap;
+}
+
+function renderTargets(t) {
+  var s = state.settings, tg = s.targets[t.ticker], budget = s.budget;
+  var wrap = document.createDocumentFragment();
+  if (!tg || !(tg.price > 0) || !tg.date) {
+    wrap.appendChild(h("div", { class: "box" }, [
+      h("div", { class: "tag dim", text: "YOUR VIEW" }),
+      h("div", { class: "big", style: "margin:6px 0", text: "No target set for " + t.ticker + " yet" }),
+      h("div", { class: "small dim", text: "Put in where you think it will get to, and by when, and I'll rank the calls that fit." }),
+      h("button", { class: "linkbtn", type: "button", style: "width:100%;background:none;cursor:pointer", text: "Set a target", onclick: function () { go("settings"); } })
+    ]));
+    return wrap;
+  }
+  var tDays = daysUntil(tg.date);
+  wrap.appendChild(h("div", { class: "box" }, [
+    h("div", { class: "tag dim", text: "YOUR VIEW" }),
+    h("div", { class: "big", style: "margin:6px 0", text: t.name + " reaches " + px(tg.price) + " by " + fmtDate(tg.date) }),
+    h("div", { class: "small dim", text: "Price now " + px(t.spot) + " · limit per contract " + money(budget) }),
+    h("button", { class: "linkbtn", type: "button", style: "width:100%;background:none;cursor:pointer", text: "Edit targets", onclick: function () { go("settings"); } })
+  ]));
+
+  function empty(text) { wrap.appendChild(h("div", { class: "note", text: text })); }
+  if (tDays < 1) { empty("That date has already passed. Pick a later date in Settings."); return wrap; }
+  if (tg.price <= t.spot) { empty("Your target is at or below today's price, and a call only makes money if the stock rises. Try a higher target in Settings."); return wrap; }
+
+  var exps = t.expiries.filter(function (x) { return x.days >= tDays; }).slice(0, 3);
+  if (!exps.length) { empty("Yahoo doesn't list options that far out for " + t.ticker + " yet. Try an earlier date."); return wrap; }
+
+  var half = t.spot + (tg.price - t.spot) / 2, cands = [];
+  exps.forEach(function (x) {
+    var Tr = (x.days - tDays) / 365;
+    x.calls.forEach(function (c) {
+      if (!c.live || c.cost > budget || c.cost < 20 || c.k < t.spot * 0.7 || c.k > tg.price * 1.5) return;
+      var worth = bsCall(tg.price, c.k, Tr, c.iv) * 100;
+      if (worth <= c.cost) return;
+      cands.push({
+        c: c, x: x, worth: worth,
+        right: (worth / c.cost - 1) * 100,
+        half: (bsCall(half, c.k, Tr, c.iv) * 100 / c.cost - 1) * 100,
+        flat: (bsCall(t.spot, c.k, Tr, c.iv) * 100 / c.cost - 1) * 100
+      });
+    });
+  });
+  if (!cands.length) {
+    empty("Nothing under " + money(budget) + " makes money if " + t.ticker + " only reaches " + px(tg.price) + " by " + fmtDate(tg.date) + ". The calls you can afford need a much bigger move. Try a higher target, or a bigger limit in Settings.");
+    return wrap;
+  }
+  var A = cands.reduce(function (b, c) { return c.right > b.right ? c : b; });
+  var rest = cands.filter(function (c) { return c !== A; });
+  var B = rest.length ? rest.reduce(function (b, c) { return c.half > b.half ? c : b; }) : null;
+
+  function card(tag, color, p) {
+    function cell(label, v) { return statCell(label, pct(v), v >= 0 ? "g" : "o"); }
+    return h("div", { class: "box", style: "display:flex;flex-direction:column;gap:8px" }, [
+      h("span", { class: "tag", style: "color:" + color, text: tag }),
+      h("div", { class: "row" }, [h("div", { class: "big", style: "font-weight:600", text: strikeTxt(p.c.k) + " call" }), h("div", { class: "big", text: money(p.c.cost) })]),
+      h("div", { class: "small dim", text: "Expires " + fmtDate(p.x.date) }),
+      h("div", { class: "small", style: "color:#cbd5e1", text: "If you are right, it is worth about " + money(p.worth) + " (" + (p.worth - p.c.cost >= 0 ? "+" : "") + money(p.worth - p.c.cost) + ") on " + fmtDate(tg.date) + "." }),
+      h("div", { class: "grid3" }, [cell("If you're right", p.right), cell("Halfway there", p.half), cell("Goes nowhere", p.flat)]),
+      h("div", { class: "small a", text: p.x.days - tDays < 14 ? "All or nothing: it expires around your target date." : "The extra weeks after your date keep some value if the move comes late." })
+    ]);
+  }
+  wrap.appendChild(card("BIGGEST PAYOFF IF YOU'RE RIGHT", "#38bdf8", A));
+  if (B) wrap.appendChild(card("HOLDS UP BETTER IF YOU'RE ONLY HALF RIGHT", "#4ade80", B));
+  wrap.appendChild(h("div", { class: "small dim", text: "Values on your date are estimates that assume the market's expected price swings stay the same. Halfway there means the stock is at " + px(half) + " on your date. Calls are ranked by what they would be worth if you are right." }));
+  return wrap;
+}
+
+function renderSettings() {
+  var s = state.settings, tickers = state.data.tickers.filter(function (t) { return t.spot; });
+  var wrap = document.createDocumentFragment();
+  wrap.appendChild(h("h3", { text: "Settings" }));
+  wrap.appendChild(h("div", { class: "small dim", style: "margin-bottom:12px", text: "Paper trading. Put in where you think each stock will get to, and by when. Saved on this phone only." }));
+
+  tickers.forEach(function (t) {
+    var tg = s.targets[t.ticker] || {};
+    wrap.appendChild(h("div", { class: "box", style: "display:flex;flex-direction:column;gap:10px" }, [
+      h("div", { class: "row" }, [h("div", { class: "big", text: t.ticker }), h("div", { class: "small dim", text: "Price now " + px(t.spot) })]),
+      h("div", { class: "two" }, [
+        h("label", null, ["I think it reaches", h("input", { type: "text", inputmode: "decimal", id: "tp-" + t.ticker, value: tg.price || "", placeholder: "e.g. " + Math.round(t.spot * 1.15) })]),
+        h("label", null, ["by", h("input", { type: "date", id: "td-" + t.ticker, value: tg.date || "" })])
+      ])
+    ]));
   });
 
-  var s = data.settings;
-  document.getElementById("foot").insertBefore(
-    el("div", "", "Rules: one contract up to " + money(s.max_cost_usd) + ", expiry " + s.min_days + "-" + s.max_days +
-      " days, strike up to " + s.max_otm_pct + "% above price, volume " + s.min_volume + "+, open interest " +
-      s.min_open_interest + "+, spread under " + s.max_spread_pct + "%."),
-    document.getElementById("foot").firstChild
-  );
-  document.getElementById("foot").firstChild.style.marginBottom = "10px";
+  wrap.appendChild(h("div", { class: "box", style: "display:flex;flex-direction:column;gap:10px" }, [
+    h("div", { class: "big", text: "Budget" }),
+    h("label", null, ["Most I would pay for one contract (US dollars)", h("input", { type: "text", inputmode: "numeric", id: "budget", value: s.budget })])
+  ]));
+
+  wrap.appendChild(h("div", { class: "box" }, [
+    h("div", { class: "big", text: "Add a stock" }),
+    h("div", { class: "small dim", style: "margin-top:8px", text: "Easiest: tell Claude the ticker and it gets added. Or on GitHub open tickers.json in the options-scanner repo, tap the pencil, add one line like { \"symbol\": \"NVDA\", \"name\": \"Nvidia\" }, and save. New stocks show up after the next update. Only US-listed stocks with options work." })
+  ]));
+
+  wrap.appendChild(h("button", { class: "primary", type: "button", text: "Save and see my picks", onclick: saveFromForm }));
+  wrap.appendChild(h("button", { class: "ghost", type: "button", text: "Back without saving", onclick: function () { go("scan"); } }));
+  return wrap;
 }
 
-function load() {
-  var upd = document.getElementById("updated");
-  fetch("results.json?t=" + Date.now())
-    .then(function (r) {
-      if (!r.ok) throw new Error("no data yet");
-      return r.json();
-    })
-    .then(function (data) {
-      var f = document.getElementById("foot");
-      if (f.dataset.ruled) f.removeChild(f.firstChild);
-      render(data);
-      f.dataset.ruled = "1";
-    })
-    .catch(function () {
-      upd.textContent = "No results yet. The first scan hasn't run - try again in a few minutes.";
-      upd.className = "old";
-    });
+function saveFromForm() {
+  var s = state.settings, b = parseFloat(String(document.getElementById("budget").value).replace(/[$,\s]/g, ""));
+  if (b > 0) s.budget = b;
+  state.data.tickers.forEach(function (t) {
+    var p = document.getElementById("tp-" + t.ticker), d = document.getElementById("td-" + t.ticker);
+    if (!p || !d) return;
+    var price = parseFloat(String(p.value).replace(/[$,\s]/g, ""));
+    if (price > 0 && d.value) s.targets[t.ticker] = { price: price, date: d.value };
+    else delete s.targets[t.ticker];
+  });
+  saveSettings(s);
+  go("targets");
 }
 
-document.getElementById("refresh").addEventListener("click", load);
-load();
+function go(view) { state.view = view; render(); window.scrollTo(0, 0); }
+
+function render() {
+  var d = state.data;
+  app.innerHTML = "";
+  document.querySelectorAll("#seg button").forEach(function (b) { b.className = b.dataset.view === state.view ? "on" : ""; });
+  document.getElementById("seg").classList.toggle("hidden", state.view === "settings");
+  document.getElementById("gear").classList.toggle("hidden", state.view === "settings");
+  if (!d) return;
+  if (state.view === "settings") { app.appendChild(renderSettings()); return; }
+
+  var tabs = h("div", { class: "tabs" });
+  d.tickers.forEach(function (t, i) {
+    tabs.appendChild(h("button", { type: "button", class: i === state.tab ? "on" : "", text: t.ticker, onclick: function () { state.tab = i; render(); } }));
+  });
+  app.appendChild(tabs);
+
+  var t = d.tickers[state.tab];
+  if (t.error || !t.spot) {
+    app.appendChild(h("div", { class: "note", text: "Couldn't get data for " + t.ticker + (t.error ? ": " + t.error : ".") + " Yahoo may not list it yet. It will try again at the next update." }));
+    return;
+  }
+  prepare(t);
+  app.appendChild(state.view === "targets" ? renderTargets(t) : renderScanner(t));
+}
+
+/* ---------- start up ---------- */
+document.getElementById("seg").addEventListener("click", function (e) {
+  var v = e.target && e.target.dataset && e.target.dataset.view;
+  if (v) go(v);
+});
+document.getElementById("gear").addEventListener("click", function () { go("settings"); });
+
+fetch("results.json?t=" + Date.now())
+  .then(function (r) { if (!r.ok) throw new Error("no data"); return r.json(); })
+  .then(function (data) {
+    state.data = data;
+    var upd = document.getElementById("updated"), ageHrs = (Date.now() - new Date(data.updated_utc).getTime()) / 3600000;
+    var when = new Date(data.updated_utc).toLocaleString("en-GB", { weekday: "short", hour: "numeric", minute: "2-digit", hour12: true });
+    upd.textContent = "Updated " + ago(data.updated_utc) + " (" + when + "). Updates weekdays around 2:45 pm, 5:30 pm and 8:30 pm UK time.";
+    if (ageHrs > 20) { upd.className = "sub old"; upd.textContent += " Market closed, showing the last update."; }
+    render();
+  })
+  .catch(function () {
+    var upd = document.getElementById("updated");
+    upd.textContent = "No results yet. The first scan hasn't run, so try again in a few minutes.";
+    upd.className = "sub old";
+  });
 </script>
 </body>
 </html>

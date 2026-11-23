@@ -1,41 +1,53 @@
 """
-Call options scanner for the phone page.
-Scans TSLA, MRVL (Marvell), MU (Micron), SPCX (SpaceX) and writes docs/results.json.
-GitHub runs this automatically (see .github/workflows/scan.yml).
+Call options data grabber for the phone page.
+
+Reads the stock list from tickers.json, pulls call option prices (about 1 month
+out to about 2 years out) from Yahoo, and saves them to docs/results.json.
+The phone page (docs/index.html) does all the picking and maths itself, so your
+budget and targets can change without waiting for a new scan.
+
+GitHub runs this 3 times a day on weekdays (see .github/workflows/scan.yml).
 You can also run it on your PC:  python scanner.py
 """
 
 import json
 import os
+import sys
 import time
 from datetime import date, datetime, timezone
 
-import pandas as pd
-import yfinance as yf
+HERE = os.path.dirname(os.path.abspath(__file__))
+TICKERS_FILE = os.path.join(HERE, "tickers.json")
+OUT_FILE = os.path.join(HERE, "docs", "results.json")
 
-# ---------- YOUR SETTINGS (edit these) ----------
-TICKERS = ["TSLA", "MRVL", "MU", "SPCX"]
+MIN_DAYS = 20        # ignore expiries sooner than this
+MAX_DAYS = 800       # ignore expiries further than this (about 2 years plus a bit)
+MIN_STRIKE = 0.6     # keep strikes from 60% of the share price...
+MAX_STRIKE = 3.0     # ...up to 300% of the share price
 
-MAX_COST_USD = 1300      # max price for ONE contract in dollars (premium x 100)
-MIN_DAYS = 21            # soonest expiry (days from today)
-MAX_DAYS = 60            # furthest expiry
-MAX_OTM_PCT = 10.0       # strike no more than this % above current price
-MIN_OTM_PCT = -2.0       # strike no lower than this % vs price (negative = slightly in the money)
-MIN_VOLUME = 50          # contracts traded today
-MIN_OPEN_INTEREST = 200  # contracts already open (liquidity check)
-MAX_SPREAD_PCT = 15.0    # bid/ask gap as % of the ask
-TOP_N_PER_TICKER = 5     # how many matches to keep per stock
-# ------------------------------------------------
+# Scheduled runs only count if US Eastern time is inside one of these windows.
+# (GitHub's clock is UTC, so each run is scheduled twice - once for summer time
+# and once for winter time - and the wrong one is skipped here.)
+ET_WINDOWS = [(9 * 60 + 20, 10 * 60 + 30),    # just after the open
+              (12 * 60, 13 * 60),             # midday
+              (15 * 60, 16 * 60)]             # near the close
 
-OUT_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "docs", "results.json")
 
-REASON_TEXT = {
-    "noprice": "no price quoted",
-    "cost": "too expensive for your cost limit",
-    "otm": "strike outside your range",
-    "liquidity": "too little volume or open interest",
-    "spread": "bid/ask gap too wide",
-}
+def in_window_now():
+    from zoneinfo import ZoneInfo
+    now = datetime.now(ZoneInfo("America/New_York"))
+    mins = now.hour * 60 + now.minute
+    return any(a <= mins <= b for a, b in ET_WINDOWS)
+
+
+def num(value, default=0.0):
+    try:
+        import pandas as pd
+        if value is None or pd.isna(value):
+            return default
+        return float(value)
+    except Exception:
+        return default
 
 
 def get_spot(tk):
@@ -46,123 +58,81 @@ def get_spot(tk):
         return float(hist["Close"].iloc[-1])
 
 
-def num(value, default=0.0):
-    try:
-        if value is None or pd.isna(value):
-            return default
-        return float(value)
-    except Exception:
-        return default
-
-
-def scan_ticker(symbol):
+def scan_ticker(yf, symbol):
     tk = yf.Ticker(symbol)
     spot = get_spot(tk)
     today = date.today()
-    matches = []
-    checked = 0
-    blocked = {k: 0 for k in REASON_TEXT}
+    expiries = []
 
     for exp in tk.options:
         days = (datetime.strptime(exp, "%Y-%m-%d").date() - today).days
         if days < MIN_DAYS or days > MAX_DAYS:
             continue
-
         calls = tk.option_chain(exp).calls
+        rows = []
         for _, c in calls.iterrows():
-            checked += 1
+            strike = float(c["strike"])
+            if strike < spot * MIN_STRIKE or strike > spot * MAX_STRIKE:
+                continue
             bid = num(c.get("bid"))
             ask = num(c.get("ask"))
-            price = ask if ask > 0 else num(c.get("lastPrice"))
-            if price <= 0:
-                blocked["noprice"] += 1
+            last = num(c.get("lastPrice"))
+            if ask <= 0 and last <= 0:
                 continue
+            # [strike, bid, ask, last, implied volatility, volume, open interest]
+            rows.append([
+                round(strike, 2), round(bid, 2), round(ask, 2), round(last, 2),
+                round(num(c.get("impliedVolatility")), 3),
+                int(num(c.get("volume"))), int(num(c.get("openInterest"))),
+            ])
+        if rows:
+            expiries.append({"date": exp, "days": days, "calls": rows})
+        time.sleep(0.3)
 
-            strike = float(c["strike"])
-            otm_pct = (strike / spot - 1) * 100
-            cost = price * 100
-            volume = int(num(c.get("volume")))
-            oi = int(num(c.get("openInterest")))
-            spread_pct = ((ask - bid) / ask * 100) if ask > 0 else 100.0
-
-            if cost > MAX_COST_USD:
-                blocked["cost"] += 1
-                continue
-            if not (MIN_OTM_PCT <= otm_pct <= MAX_OTM_PCT):
-                blocked["otm"] += 1
-                continue
-            if volume < MIN_VOLUME or oi < MIN_OPEN_INTEREST:
-                blocked["liquidity"] += 1
-                continue
-            if spread_pct > MAX_SPREAD_PCT:
-                blocked["spread"] += 1
-                continue
-
-            breakeven = strike + price
-            matches.append({
-                "expiry": exp,
-                "days": days,
-                "strike": strike,
-                "cost_usd": round(cost, 2),
-                "breakeven": round(breakeven, 2),
-                "needs_rise_pct": round((breakeven / spot - 1) * 100, 1),
-                "volume": volume,
-                "open_interest": oi,
-                "spread_pct": round(spread_pct, 1),
-                "iv_pct": round(num(c.get("impliedVolatility")) * 100),
-            })
-
-    matches.sort(key=lambda m: (m["needs_rise_pct"], -m["volume"]))
-    matches = matches[:TOP_N_PER_TICKER]
-
-    top_reason = None
-    if not matches and checked:
-        key = max(blocked, key=blocked.get)
-        top_reason = f"{blocked[key]} of {checked} contracts were {REASON_TEXT[key]}"
-
-    return {
-        "ticker": symbol,
-        "spot": round(spot, 2),
-        "checked": checked,
-        "matches": matches,
-        "why_none": top_reason,
-        "error": None,
-    }
+    return {"ticker": symbol, "spot": round(spot, 2), "expiries": expiries, "error": None}
 
 
 def main():
+    is_scheduled = os.environ.get("GITHUB_EVENT_NAME") == "schedule"
+    if is_scheduled and not in_window_now():
+        print("Outside the update windows (DST double-run) - skipping.")
+        return 0
+
+    import yfinance as yf
+
+    with open(TICKERS_FILE, encoding="utf-8") as f:
+        stocks = json.load(f)
+
     tickers = []
-    for symbol in TICKERS:
+    for s in stocks:
+        symbol = s["symbol"].strip().upper()
         print(f"Scanning {symbol} ...")
         try:
-            result = scan_ticker(symbol)
+            result = scan_ticker(yf, symbol)
         except Exception as e:  # keep going if one stock fails
             print(f"  Failed: {e}")
-            result = {"ticker": symbol, "spot": None, "checked": 0,
-                      "matches": [], "why_none": None, "error": str(e)[:200]}
-        print(f"  {len(result['matches'])} matches")
+            result = {"ticker": symbol, "spot": None, "expiries": [], "error": str(e)[:200]}
+        result["name"] = s.get("name", symbol)
+        n = sum(len(x["calls"]) for x in result["expiries"])
+        print(f"  {len(result['expiries'])} expiries, {n} calls")
         tickers.append(result)
         time.sleep(1)
 
+    if not any(t["expiries"] for t in tickers):
+        print("Nothing came back for any stock - keeping the old results.")
+        return 1
+
     payload = {
         "updated_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
-        "settings": {
-            "max_cost_usd": MAX_COST_USD,
-            "min_days": MIN_DAYS,
-            "max_days": MAX_DAYS,
-            "max_otm_pct": MAX_OTM_PCT,
-            "min_volume": MIN_VOLUME,
-            "min_open_interest": MIN_OPEN_INTEREST,
-            "max_spread_pct": MAX_SPREAD_PCT,
-        },
+        "fields": ["strike", "bid", "ask", "last", "iv", "volume", "open_interest"],
         "tickers": tickers,
     }
-
     os.makedirs(os.path.dirname(OUT_FILE), exist_ok=True)
     with open(OUT_FILE, "w", encoding="utf-8") as f:
-        json.dump(payload, f, indent=2)
-    print(f"Saved {OUT_FILE}")
+        json.dump(payload, f, separators=(",", ":"))
+    print(f"Saved {OUT_FILE} ({os.path.getsize(OUT_FILE) // 1024} KB)")
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
