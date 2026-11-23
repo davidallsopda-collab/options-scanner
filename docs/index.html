@@ -368,42 +368,14 @@ function renderSettings() {
     h("label", null, ["Most I would pay for one contract (US dollars)", h("input", { type: "text", inputmode: "numeric", id: "budget", value: s.budget })])
   ]));
 
-  wrap.appendChild(h("div", { class: "box", style: "display:flex;flex-direction:column;gap:10px" }, [
-    h("div", { class: "big", text: "Add or remove a stock" }),
-    h("label", null, ["Ticker (US-listed stocks with options)", h("input", { type: "text", id: "newsym", placeholder: "e.g. NVDA", autocapitalize: "characters", autocomplete: "off" })]),
-    h("label", null, ["Name (optional)", h("input", { type: "text", id: "newname", placeholder: "e.g. Nvidia", autocomplete: "off" })]),
-    h("label", null, ["Passcode (saved on this phone)", h("input", { type: "password", id: "passcode", autocomplete: "off", value: savedPass() })]),
-    h("div", { class: "two" }, [
-      h("button", { class: "linkbtn", type: "button", style: "margin:0;background:none;cursor:pointer", text: "Add stock", onclick: function () { changeStock("add"); } }),
-      h("button", { class: "linkbtn", type: "button", style: "margin:0;background:none;cursor:pointer;border-color:#475569;color:#cbd5e1", text: "Remove stock", onclick: function () { changeStock("remove"); } })
-    ]),
-    h("div", { class: "small dim", id: "stockmsg", text: "New stocks show up after the scan it starts, usually about 2 minutes. For remove, just type the ticker." })
+  wrap.appendChild(h("div", { class: "box" }, [
+    h("div", { class: "big", text: "Add a stock" }),
+    h("div", { class: "small dim", style: "margin-top:8px", text: "Easiest: tell Claude the ticker and it gets added. Or on GitHub open tickers.json in the options-scanner repo, tap the pencil, add one line like { \"symbol\": \"NVDA\", \"name\": \"Nvidia\" }, and save. New stocks show up after the next update. Only US-listed stocks with options work." })
   ]));
 
   wrap.appendChild(h("button", { class: "primary", type: "button", text: "Save and see my picks", onclick: saveFromForm }));
   wrap.appendChild(h("button", { class: "ghost", type: "button", text: "Back without saving", onclick: function () { go("scan"); } }));
   return wrap;
-}
-
-var WORKER_URL = "https://options-scanner-add.davidallsop-da.workers.dev";
-function savedPass() { try { return localStorage.getItem("callScannerPass") || ""; } catch (e) { return ""; } }
-function changeStock(action) {
-  var msg = document.getElementById("stockmsg"), sym = document.getElementById("newsym").value.trim(),
-      name = document.getElementById("newname").value.trim(), pass = document.getElementById("passcode").value;
-  if (!sym) { msg.textContent = "Type a ticker first."; msg.className = "small a"; return; }
-  if (!pass) { msg.textContent = "Enter your passcode first."; msg.className = "small a"; return; }
-  msg.textContent = "Working on it..."; msg.className = "small dim";
-  fetch(WORKER_URL, { method: "POST", headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({ action: action, symbol: sym, name: name, passcode: pass }) })
-    .then(function (r) { return r.json(); })
-    .then(function (j) {
-      if (j.ok) {
-        try { localStorage.setItem("callScannerPass", pass); } catch (e) {}
-        msg.textContent = j.message + (j.scanStarted ? " A fresh scan has started. Refresh this page in about 2 minutes." : " It will appear after the next scheduled update.");
-        msg.className = "small g";
-      } else { msg.textContent = j.error || "Something went wrong."; msg.className = "small a"; }
-    })
-    .catch(function () { msg.textContent = "Couldn't reach the add-stock service. Check your signal and try again."; msg.className = "small a"; });
 }
 
 function saveFromForm() {
