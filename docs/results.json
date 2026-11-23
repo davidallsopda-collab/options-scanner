@@ -1,0 +1,181 @@
+{
+  "updated_utc": "2026-11-23T16:05:54+00:00",
+  "settings": {
+    "max_cost_usd": 1300,
+    "min_days": 21,
+    "max_days": 60,
+    "max_otm_pct": 10.0,
+    "min_volume": 50,
+    "min_open_interest": 200,
+    "max_spread_pct": 15.0
+  },
+  "tickers": [
+    {
+      "ticker": "TSLA",
+      "spot": 390.27,
+      "checked": 426,
+      "matches": [
+        {
+          "expiry": "2026-12-18",
+          "days": 25,
+          "strike": 415.0,
+          "cost_usd": 1140.0,
+          "breakeven": 426.4,
+          "needs_rise_pct": 9.3,
+          "volume": 807,
+          "open_interest": 2307,
+          "spread_pct": 3.9,
+          "iv_pct": 50
+        },
+        {
+          "expiry": "2026-12-18",
+          "days": 25,
+          "strike": 420.0,
+          "cost_usd": 985.0,
+          "breakeven": 429.85,
+          "needs_rise_pct": 10.1,
+          "volume": 4431,
+          "open_interest": 8898,
+          "spread_pct": 2.5,
+          "iv_pct": 50
+        },
+        {
+          "expiry": "2026-12-24",
+          "days": 31,
+          "strike": 420.0,
+          "cost_usd": 1140.0,
+          "breakeven": 431.4,
+          "needs_rise_pct": 10.5,
+          "volume": 553,
+          "open_interest": 612,
+          "spread_pct": 3.9,
+          "iv_pct": 49
+        },
+        {
+          "expiry": "2026-12-18",
+          "days": 25,
+          "strike": 425.0,
+          "cost_usd": 840.0,
+          "breakeven": 433.4,
+          "needs_rise_pct": 11.0,
+          "volume": 739,
+          "open_interest": 3512,
+          "spread_pct": 4.2,
+          "iv_pct": 49
+        },
+        {
+          "expiry": "2026-12-24",
+          "days": 31,
+          "strike": 425.0,
+          "cost_usd": 1000.0,
+          "breakeven": 435.0,
+          "needs_rise_pct": 11.5,
+          "volume": 254,
+          "open_interest": 523,
+          "spread_pct": 5.0,
+          "iv_pct": 49
+        }
+      ],
+      "why_none": null,
+      "error": null
+    },
+    {
+      "ticker": "MRVL",
+      "spot": 145.26,
+      "checked": 218,
+      "matches": [
+        {
+          "expiry": "2026-12-18",
+          "days": 25,
+          "strike": 155.0,
+          "cost_usd": 1145.0,
+          "breakeven": 166.45,
+          "needs_rise_pct": 14.6,
+          "volume": 103,
+          "open_interest": 2205,
+          "spread_pct": 6.1,
+          "iv_pct": 97
+        }
+      ],
+      "why_none": null,
+      "error": null
+    },
+    {
+      "ticker": "MU",
+      "spot": 707.44,
+      "checked": 759,
+      "matches": [],
+      "why_none": "412 of 759 contracts were too expensive for your cost limit",
+      "error": null
+    },
+    {
+      "ticker": "SPCX",
+      "spot": 136.15,
+      "checked": 235,
+      "matches": [
+        {
+          "expiry": "2026-12-18",
+          "days": 25,
+          "strike": 135.0,
+          "cost_usd": 975.0,
+          "breakeven": 144.75,
+          "needs_rise_pct": 6.3,
+          "volume": 823,
+          "open_interest": 9574,
+          "spread_pct": 0.5,
+          "iv_pct": 63
+        },
+        {
+          "expiry": "2026-12-24",
+          "days": 31,
+          "strike": 135.0,
+          "cost_usd": 1090.0,
+          "breakeven": 145.9,
+          "needs_rise_pct": 7.2,
+          "volume": 89,
+          "open_interest": 563,
+          "spread_pct": 6.9,
+          "iv_pct": 62
+        },
+        {
+          "expiry": "2026-12-18",
+          "days": 25,
+          "strike": 140.0,
+          "cost_usd": 720.0,
+          "breakeven": 147.2,
+          "needs_rise_pct": 8.1,
+          "volume": 2302,
+          "open_interest": 18582,
+          "spread_pct": 2.1,
+          "iv_pct": 61
+        },
+        {
+          "expiry": "2026-12-24",
+          "days": 31,
+          "strike": 140.0,
+          "cost_usd": 820.0,
+          "breakeven": 148.2,
+          "needs_rise_pct": 8.9,
+          "volume": 317,
+          "open_interest": 627,
+          "spread_pct": 8.5,
+          "iv_pct": 59
+        },
+        {
+          "expiry": "2026-12-31",
+          "days": 38,
+          "strike": 140.0,
+          "cost_usd": 880.0,
+          "breakeven": 148.8,
+          "needs_rise_pct": 9.3,
+          "volume": 434,
+          "open_interest": 1651,
+          "spread_pct": 5.7,
+          "iv_pct": 58
+        }
+      ],
+      "why_none": null,
+      "error": null
+    }
+  ]
+}
