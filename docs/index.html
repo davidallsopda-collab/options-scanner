@@ -346,6 +346,71 @@ function renderTargets(t) {
   return wrap;
 }
 
+
+/* ---------- "What if there's a merger?" box (Tesla and SpaceX tabs) ---------- */
+var MERGER_TICKERS = { TSLA: 1, SPCX: 1 };
+function whatIf(t) {
+  var exps = t.expiries.filter(function (x) { return x.days >= 300; });
+  var box = h("div", { class: "box", style: "display:flex;flex-direction:column;gap:10px;margin-top:6px" });
+  box.appendChild(h("div", { class: "big", text: "What if there's a merger?" }));
+  if (!exps.length) { box.appendChild(h("div", { class: "small dim", text: "No long-dated options listed for " + t.ticker + " yet." })); return box; }
+  box.appendChild(h("div", { class: "small dim", text: "Rumours only so far, and the real terms would decide everything. This is a rough what-if so you can try different numbers. After a share-for-share merger an option keeps its strike and expiry, and covers a different number of shares (Robinhood's explainer says the same)." }));
+
+  var expSel = h("select", { id: "wi-exp" }), kSel = h("select", { id: "wi-k" });
+  exps.forEach(function (x, i) { expSel.appendChild(h("option", { value: String(i), text: fmtDate(x.date) })); });
+  expSel.value = String(exps.length - 1);
+  function fillStrikes() {
+    var x = exps[Number(expSel.value)], keep = kSel.value;
+    kSel.innerHTML = "";
+    var best = null;
+    x.calls.forEach(function (c, i) {
+      if (c.k < t.spot * 0.8 || c.k > t.spot * 3 || c.price <= 0) return;
+      kSel.appendChild(h("option", { value: String(i), text: strikeTxt(c.k) + " call, " + money(c.cost) }));
+      if (!best || Math.abs(c.k - t.spot) < Math.abs(x.calls[best].k - t.spot)) best = i;
+    });
+    kSel.value = kSel.querySelector('option[value="' + keep + '"]') ? keep : String(best);
+  }
+  fillStrikes();
+
+  var soon = new Date(Date.now() + 182 * 86400000).toISOString().slice(0, 10);
+  var ratio = h("input", { type: "text", inputmode: "decimal", id: "wi-ratio", value: "1" });
+  var price = h("input", { type: "text", inputmode: "decimal", id: "wi-price", placeholder: "price of the new company" });
+  var date = h("input", { type: "date", id: "wi-date", value: soon });
+  var out = h("div", { style: "display:flex;flex-direction:column;gap:8px" });
+
+  function calc() {
+    out.innerHTML = "";
+    var x = exps[Number(expSel.value)], c = x.calls[Number(kSel.value)];
+    var r = parseFloat(String(ratio.value).replace(/,/g, "")), P = parseFloat(String(price.value).replace(/[$,\s]/g, ""));
+    if (!(r > 0) || !(P > 0)) { out.appendChild(h("div", { class: "small a", text: "Type the share ratio and a price for the new company to see the result." })); return; }
+    var dd = daysUntil(date.value);
+    if (!date.value || dd < 0) { out.appendChild(h("div", { class: "small a", text: "Pick a date from today onwards." })); return; }
+    var Tr = (x.days - dd) / 365;
+    if (Tr < 0) { out.appendChild(h("div", { class: "small a", text: "That date is after the option expires. Pick an earlier date." })); return; }
+    var S = r * P, worth = bsCall(S, c.k, Tr, c.iv) * 100, gain = (worth / c.cost - 1) * 100;
+    out.appendChild(h("div", { class: "small", style: "color:#cbd5e1", text: "1 " + t.ticker + " share would turn into " + r + " new share" + (r === 1 ? "" : "s") + ", so your call then behaves like a " + t.ticker + " call with the share price at " + px(S) + "." }));
+    out.appendChild(h("div", { class: "grid3" }, [
+      statCell("Cost now", money(c.cost)),
+      statCell("Worth then (est.)", money(worth)),
+      statCell("Gain or loss", pct(gain), gain >= 0 ? "g" : "o")
+    ]));
+    out.appendChild(h("div", { class: "small dim", text: "Estimated on " + fmtDate(date.value) + " for the " + strikeTxt(c.k) + " call expiring " + fmtDate(x.date) + ". Uses today's price swings (volatility), which could be very different after a merger. The deal might also include cash, which this ignores. A guide, not a promise." }));
+  }
+  expSel.addEventListener("change", function () { fillStrikes(); calc(); });
+  [kSel, ratio, price, date].forEach(function (e) { e.addEventListener("input", calc); e.addEventListener("change", calc); });
+
+  box.appendChild(h("label", null, ["Which expiry", expSel]));
+  box.appendChild(h("label", null, ["Which call", kSel]));
+  box.appendChild(h("div", { class: "two" }, [
+    h("label", null, ["New shares per 1 " + t.ticker + " share", ratio]),
+    h("label", null, ["New company share price ($)", price])
+  ]));
+  box.appendChild(h("label", null, ["On this date", date]));
+  box.appendChild(out);
+  calc();
+  return box;
+}
+
 function renderSettings() {
   var s = state.settings, tickers = state.data.tickers.filter(function (t) { return t.spot; });
   var wrap = document.createDocumentFragment();
@@ -444,6 +509,7 @@ function render() {
   }
   prepare(t);
   app.appendChild(state.view === "targets" ? renderTargets(t) : renderScanner(t));
+  if (MERGER_TICKERS[t.ticker]) app.appendChild(whatIf(t));
 }
 
 /* ---------- start up ---------- */
