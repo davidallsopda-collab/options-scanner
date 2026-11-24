@@ -5,7 +5,6 @@ on:
     # Checked every 15 minutes on weekdays because GitHub's timer often runs late.
     # scanner.py only does a scan at about 2:45pm, 5:30pm and 8:30pm UK time
     # (9:45, 12:30 and 15:30 US Eastern) and skips the rest.
-    # pears.py (Pears app) updates on every run while the US market is open.
     - cron: "*/15 13-21 * * 1-5"
   workflow_dispatch:
 
@@ -28,14 +27,10 @@ jobs:
       - name: Run scanner
         run: python scanner.py
 
-      - name: Run Pears (all pair trades)
-        if: always()
-        run: python pears.py || echo "Pears failed - other results still saved"
-
       - name: Save results
         if: always()
         run: |
           git config user.name "scanner-bot"
           git config user.email "scanner-bot@users.noreply.github.com"
-          git add docs/results.json; git add docs/pears 2>/dev/null || true
+          git add docs/results.json
           git diff --cached --quiet || (git commit -m "Update results" && git pull --rebase && git push)
