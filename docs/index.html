@@ -6,6 +6,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#0f172a">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <title>Call Scanner</title>
 <style>
   :root { --bg:#0f172a; --card:#1e293b; --line:#334155; --text:#e2e8f0; --dim:#94a3b8;
@@ -46,6 +49,10 @@
   .grid3 { display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:8px; padding-top:4px; }
   .grid3 span.l { display:block; font-size:12px; color:var(--dim); }
   .grid3 span.v { display:block; font-size:16px; font-weight:700; }
+  .r { color:#f87171; }
+  .pill { font-size:12px; font-weight:700; letter-spacing:.04em; border-radius:999px; padding:3px 10px; border:1px solid; white-space:nowrap; }
+  .legend { display:flex; flex-wrap:wrap; gap:6px 14px; font-size:12px; color:var(--dim); padding:0 0 10px; }
+  .legend i { display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:5px; vertical-align:-1px; }
   .g { color:var(--green); } .o { color:var(--orange); } .a { color:var(--amber); }
   label { display:flex; flex-direction:column; gap:4px; font-size:13px; color:#cbd5e1; }
   input { min-height:44px; width:100%; background:var(--bg); border:1px solid #475569; border-radius:10px;
@@ -288,23 +295,38 @@ function payoffChart(o) {
   return h("div", { style: "margin-top:2px" }, [svg, h("div", { class: "small dim", text: o.caption })]);
 }
 
+
+/* colour code by chance of profit: green 30%+, yellow 10-30%, red under 10% */
+function oddsTone(o) {
+  if (o >= 30) return { color: "#4ade80", cls: "g", label: "GOOD ODDS" };
+  if (o >= 10) return { color: "#fbbf24", cls: "a", label: "FAIR ODDS" };
+  return { color: "#f87171", cls: "r", label: "LONG SHOT" };
+}
+function toneHead(tagEl, tone) {
+  return h("div", { class: "row", style: "align-items:center" }, [tagEl,
+    h("span", { class: "pill", style: "color:" + tone.color + ";border-color:" + tone.color, text: tone.label })]);
+}
+function toneBox(tone, kids) {
+  return h("div", { class: "box", style: "display:flex;flex-direction:column;gap:8px;border-color:" + tone.color + ";border-width:2px" }, kids);
+}
+
 function scanCard(t, tagText, tagColor, p, budget) {
-  var over = p.c.cost > budget;
+  var over = p.c.cost > budget, tone = oddsTone(p.odds);
   var kids = [
-    h("span", { class: "tag", style: "color:" + tagColor, text: tagText }),
+    toneHead(h("span", { class: "tag", style: "color:" + tagColor, text: tagText }), tone),
     h("div", { class: "row" }, [h("div", { class: "big", style: "font-weight:600", text: strikeTxt(p.c.k) + " call" }), h("div", { class: "big", text: money(p.c.cost) })]),
     h("div", { class: "small dim", text: "Expires " + fmtDate(p.x.date) + (p.c.live ? "" : " (no live quote, last traded price)") }),
     h("div", { class: "grid3" }, [
       statCell("Break-even", px(p.be)),
       statCell("Rise needed", p.rise.toFixed(0) + "%", p.rise < 10 ? "g" : (p.rise < 25 ? "a" : "o")),
-      statCell("Odds (est.)", p.odds < 1 ? "<1%" : Math.round(p.odds) + "%")
+      statCell("Odds (est.)", p.odds < 1 ? "<1%" : Math.round(p.odds) + "%", tone.cls)
     ])
   ];
   kids.push(payoffChart({ S: t.spot, K: p.c.k, cost: p.c.cost, iv: p.c.iv, Tr: 0, be: p.be,
     caption: "Profit or loss on expiry day (" + fmtDate(p.x.date) + ") if the share price is at each level. The green part is profit." }));
   if (over) kids.push(h("div", { class: "small a", text: "Over your " + money(budget) + " limit. Shown so you can see the cost of being near today's price." }));
   if (p.c.oi < 50) kids.push(h("div", { class: "small a", text: "Thin trading (" + p.c.oi + " open contracts), so the price you get may differ." }));
-  return h("div", { class: "box", style: "display:flex;flex-direction:column;gap:8px" }, kids);
+  return toneBox(tone, kids);
 }
 
 function renderScanner(t) {
@@ -413,14 +435,15 @@ function renderTargets(t) {
 
   function card(tag, color, p) {
     function cell(label, v) { return statCell(label, pct(v), v >= 0 ? "g" : "o"); }
-    return h("div", { class: "box", style: "display:flex;flex-direction:column;gap:8px" }, [
-      h("span", { class: "tag", style: "color:" + color, text: tag }),
+    var tone = oddsTone(p.odds);
+    return toneBox(tone, [
+      toneHead(h("span", { class: "tag", style: "color:" + color, text: tag }), tone),
       h("div", { class: "row" }, [h("div", { class: "big", style: "font-weight:600", text: strikeTxt(p.c.k) + " call" }), h("div", { class: "big", text: money(p.c.cost) })]),
       h("div", { class: "small dim", text: "Expires " + fmtDate(p.x.date) }),
       h("div", { class: "small", style: "color:#cbd5e1", text: "If you are right, it is worth about " + money(p.worth) + " (" + (p.worth - p.c.cost >= 0 ? "+" : "") + money(p.worth - p.c.cost) + ") on " + fmtDate(tg.date) + "." }),
       h("div", { class: "grid3" }, [cell("If you're right", p.right), cell("Halfway there", p.half), cell("Goes nowhere", p.flat)]),
       h("div", { class: "grid3" }, [
-        statCell("Odds (est.)", p.odds < 1 ? "<1%" : Math.round(p.odds) + "%"),
+        statCell("Odds (est.)", p.odds < 1 ? "<1%" : Math.round(p.odds) + "%", tone.cls),
         statCell("Break-even", px(p.be)),
         statCell("Rise needed", ((p.be / t.spot - 1) * 100).toFixed(0) + "%", (p.be / t.spot - 1) * 100 < 10 ? "g" : ((p.be / t.spot - 1) * 100 < 25 ? "a" : "o"))
       ]),
@@ -590,6 +613,12 @@ function render() {
     tabs.appendChild(h("button", { type: "button", class: i === state.tab ? "on" : "", text: t.ticker, onclick: function () { state.tab = i; render(); } }));
   });
   app.appendChild(tabs);
+  app.appendChild(h("div", { class: "legend" }, [
+    h("span", null, [h("i", { style: "background:#4ade80" }), "Good odds 30%+"]),
+    h("span", null, [h("i", { style: "background:#fbbf24" }), "Fair 10-30%"]),
+    h("span", null, [h("i", { style: "background:#f87171" }), "Long shot under 10%"]),
+    h("span", { text: "(chance of profit)" })
+  ]));
 
   var t = d.tickers[state.tab];
   if (t.error || !t.spot) {
@@ -602,6 +631,8 @@ function render() {
 }
 
 /* ---------- start up ---------- */
+if ("serviceWorker" in navigator) { window.addEventListener("load", function () { navigator.serviceWorker.register("sw.js").catch(function () {}); }); }
+
 document.getElementById("seg").addEventListener("click", function (e) {
   var v = e.target && e.target.dataset && e.target.dataset.view;
   if (v) go(v);
