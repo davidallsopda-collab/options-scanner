@@ -75,6 +75,7 @@ def build(close, p):
     mid = ratio.rolling(pairs.WINDOW).mean()
     out["id"] = f"{a}-{b}"
     out["group"] = p.get("group", "")
+    out["kind"] = p.get("kind", "twins")
     out["half_life"] = half_life(ratio, mid)
     return out
 
@@ -85,7 +86,7 @@ def summary_row(d):
     # 60-day mini line of the ratio for the home screen
     spark = [v for v in h["ratio"][-60:]]
     return {
-        "id": d["id"], "a": d["a"], "b": d["b"], "names": d["names"], "group": d["group"],
+        "id": d["id"], "a": d["a"], "b": d["b"], "names": d["names"], "group": d["group"], "kind": d.get("kind", "twins"),
         "days": d["days"], "from": h["dates"][0],
         "z": d["z"], "signal": d["signal"],
         "corr": d["stats"]["corr"], "corr30": d["stats"]["corr30"], "half_life": d["half_life"],
