@@ -1,0 +1,10 @@
+[
+  { "a": "TSLA",  "b": "SPCX", "na": "Tesla",      "nb": "SpaceX",     "group": "Musk" },
+  { "a": "V",     "b": "MA",   "na": "Visa",       "nb": "Mastercard", "group": "Payments" },
+  { "a": "KO",    "b": "PEP",  "na": "Coca-Cola",  "nb": "Pepsi",      "group": "Drinks" },
+  { "a": "XOM",   "b": "CVX",  "na": "Exxon",      "nb": "Chevron",    "group": "Oil" },
+  { "a": "HD",    "b": "LOW",  "na": "Home Depot", "nb": "Lowe's",     "group": "DIY stores" },
+  { "a": "NVDA",  "b": "AMD",  "na": "Nvidia",     "nb": "AMD",        "group": "AI chips" },
+  { "a": "AVGO",  "b": "MRVL", "na": "Broadcom",   "nb": "Marvell",    "group": "Custom chips" },
+  { "a": "GOOGL", "b": "GOOG", "na": "Google A",   "nb": "Google C",   "group": "Same company" }
+]

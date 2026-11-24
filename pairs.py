@@ -234,37 +234,38 @@ def compute(df):
     rel5 = ((df[B].shift(-5) / df[B]) - (df[A].shift(-5) / df[A])) * 100   # SpaceX beat Tesla by, over 5 days
     rel1 = fwd_b1 - fwd_a1
 
+    na, nb = NAMES[A], NAMES[B]
     tests = [
-        test("Tesla jumps - buy SpaceX next day",
-             f"Days Tesla closed up {BIG_MOVE:g}% or more. Result = SpaceX's move the next day.",
-             ra >= BIG_MOVE, fwd_b1, fwd_b1, "SpaceX up next day"),
-        test("Tesla jumps - hold SpaceX 3 days",
-             f"Same days, but holding SpaceX for 3 days instead of 1.",
-             ra >= BIG_MOVE, fwd_b3, fwd_b3, "SpaceX up after 3 days"),
-        test("SpaceX jumps - buy Tesla next day",
-             f"Days SpaceX closed up {BIG_MOVE:g}% or more. Result = Tesla's move the next day.",
-             rb >= BIG_MOVE, fwd_a1, fwd_a1, "Tesla up next day"),
-        test("SpaceX lagged Tesla - does it catch up?",
-             "Days SpaceX did noticeably worse than Tesla's move said it should. "
-             "Result = how much SpaceX beat Tesla the next day.",
-             gap_z <= -LAG_Z, rel1, rel1, "SpaceX beat Tesla next day"),
-        test("Stretch score very low - SpaceX cheap vs Tesla",
+        test(f"{na} jumps - buy {nb} next day",
+             f"Days {na} closed up {BIG_MOVE:g}% or more. Result = {nb}'s move the next day.",
+             ra >= BIG_MOVE, fwd_b1, fwd_b1, f"{nb} up next day"),
+        test(f"{na} jumps - hold {nb} 3 days",
+             f"Same days, but holding {nb} for 3 days instead of 1.",
+             ra >= BIG_MOVE, fwd_b3, fwd_b3, f"{nb} up after 3 days"),
+        test(f"{nb} jumps - buy {na} next day",
+             f"Days {nb} closed up {BIG_MOVE:g}% or more. Result = {na}'s move the next day.",
+             rb >= BIG_MOVE, fwd_a1, fwd_a1, f"{na} up next day"),
+        test(f"{nb} lagged {na} - does it catch up?",
+             f"Days {nb} did noticeably worse than {na}'s move said it should. "
+             f"Result = how much {nb} beat {na} the next day.",
+             gap_z <= -LAG_Z, rel1, rel1, f"{nb} beat {na} next day"),
+        test(f"Stretch score very low - {nb} cheap vs {na}",
              f"Days the stretch score was -{Z_SIGNAL:g} or lower. "
-             "Result = how much SpaceX beat Tesla over the next 5 days.",
-             z <= -Z_SIGNAL, rel5, rel5, "SpaceX beat Tesla over 5 days"),
-        test("Stretch score very high - SpaceX dear vs Tesla",
+             f"Result = how much {nb} beat {na} over the next 5 days.",
+             z <= -Z_SIGNAL, rel5, rel5, f"{nb} beat {na} over 5 days"),
+        test(f"Stretch score very high - {nb} dear vs {na}",
              f"Days the stretch score was +{Z_SIGNAL:g} or higher. "
-             "Result = how much Tesla beat SpaceX over the next 5 days.",
-             z >= Z_SIGNAL, -rel5, -rel5, "Tesla beat SpaceX over 5 days"),
+             f"Result = how much {na} beat {nb} over the next 5 days.",
+             z >= Z_SIGNAL, -rel5, -rel5, f"{na} beat {nb} over 5 days"),
     ]
 
     zt = clean(z.iloc[-1])
     if zt is None:
         signal = ("none", "Not enough history yet")
     elif zt <= -Z_SIGNAL:
-        signal = ("cheap", "SpaceX looks cheap vs Tesla")
+        signal = ("cheap", f"{nb} looks cheap vs {na}")
     elif zt >= Z_SIGNAL:
-        signal = ("dear", "SpaceX looks expensive vs Tesla")
+        signal = ("dear", f"{nb} looks expensive vs {na}")
     elif abs(zt) >= 1:
         signal = ("lean", "Drifting from normal - worth watching")
     else:
