@@ -25,19 +25,35 @@ MAX_DAYS = 800       # ignore expiries further than this (about 2 years plus a b
 MIN_STRIKE = 0.6     # keep strikes from 60% of the share price...
 MAX_STRIKE = 3.0     # ...up to 300% of the share price
 
-# Scheduled runs only count if US Eastern time is inside one of these windows.
-# (GitHub's clock is UTC, so each run is scheduled twice - once for summer time
-# and once for winter time - and the wrong one is skipped here.)
-ET_WINDOWS = [(9 * 60 + 20, 10 * 60 + 30),    # just after the open
-              (12 * 60, 13 * 60),             # midday
-              (15 * 60, 16 * 60)]             # near the close
+# Target update times, US Eastern (minutes after midnight): 9:45, 12:30 and 15:30.
+# GitHub's timer often runs late or skips runs, so it is triggered every 15 minutes
+# and this check decides if an update is due: a scheduled run only does the scan if
+# the latest target time has passed and the saved results are older than that time.
+ET_SLOTS = [9 * 60 + 45, 12 * 60 + 30, 15 * 60 + 30]
+LAST_RUN_MINUTE = 16 * 60 + 30   # no scheduled scans after 4:30pm Eastern
 
 
-def in_window_now():
+def update_due(now_et, last_update_utc):
+    """now_et: aware datetime in New York. last_update_utc: aware datetime or None."""
+    if now_et.weekday() >= 5:
+        return False
+    mins = now_et.hour * 60 + now_et.minute
+    passed = [m for m in ET_SLOTS if m <= mins]
+    if not passed or mins > LAST_RUN_MINUTE:
+        return False
+    slot = now_et.replace(hour=passed[-1] // 60, minute=passed[-1] % 60, second=0, microsecond=0)
+    return last_update_utc is None or last_update_utc < slot
+
+
+def due_now():
     from zoneinfo import ZoneInfo
-    now = datetime.now(ZoneInfo("America/New_York"))
-    mins = now.hour * 60 + now.minute
-    return any(a <= mins <= b for a, b in ET_WINDOWS)
+    last = None
+    try:
+        with open(OUT_FILE, encoding="utf-8") as f:
+            last = datetime.fromisoformat(json.load(f)["updated_utc"])
+    except Exception:
+        pass
+    return update_due(datetime.now(ZoneInfo("America/New_York")), last)
 
 
 def num(value, default=0.0):
@@ -94,8 +110,8 @@ def scan_ticker(yf, symbol):
 
 def main():
     is_scheduled = os.environ.get("GITHUB_EVENT_NAME") == "schedule"
-    if is_scheduled and not in_window_now():
-        print("Outside the update windows (DST double-run) - skipping.")
+    if is_scheduled and not due_now():
+        print("No update due right now - skipping.")
         return 0
 
     import yfinance as yf

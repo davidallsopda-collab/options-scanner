@@ -2,11 +2,10 @@ name: Scan
 
 on:
   schedule:
-    # 3 updates a day, Mon-Fri: about 2:45pm, 5:30pm and 8:30pm UK time.
-    # Each is listed twice (summer + winter US time); scanner.py skips the wrong one.
-    - cron: "45 13,14 * * 1-5"
-    - cron: "30 16,17 * * 1-5"
-    - cron: "30 19,20 * * 1-5"
+    # Checked every 15 minutes on weekdays because GitHub's timer often runs late.
+    # scanner.py only does a scan at about 2:45pm, 5:30pm and 8:30pm UK time
+    # (9:45, 12:30 and 15:30 US Eastern) and skips the rest.
+    - cron: "*/15 13-21 * * 1-5"
   workflow_dispatch:
 
 permissions:
