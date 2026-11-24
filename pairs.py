@@ -106,6 +106,98 @@ def test(name, explain, mask, outcome, baseline, win_word):
     }
 
 
+BANDS = [1.0, 1.25, 1.5, 1.75, 2.0, 2.5]
+
+
+def rotate(a, b, z, band, from_i=0):
+    """Switch strategy: hold SpaceX after the stretch score hits -band, switch to Tesla
+    after it hits +band. Decides on each close, trades at that close (no peeking ahead).
+    Runs over the whole history so the position carries over; only counts money from
+    from_i onwards. Returns growth of 100, closed trades (% each) and what it holds now."""
+    hold, cap, start_cap, entry, trades = None, 100.0, None, None, []
+    for i in range(len(z) - 1):
+        if i == from_i:
+            start_cap = cap
+            if hold:
+                entry = cap               # a position carried in counts from here
+        zi = z[i]
+        if zi is not None and not math.isnan(zi):
+            want = "B" if zi <= -band else "A" if zi >= band else hold
+            if want != hold:
+                if hold and i >= from_i and entry is not None:
+                    trades.append((cap / entry - 1) * 100)
+                hold = want
+                entry = cap if i >= from_i else None
+        if hold:
+            p = b if hold == "B" else a
+            cap *= p[i + 1] / p[i]
+    if start_cap is None:
+        start_cap = cap
+    if hold and entry is not None:
+        trades.append((cap / entry - 1) * 100)     # still open: marked at today's price
+    return cap / start_cap * 100, trades, hold
+
+
+def rotation(df, z):
+    a, b = list(df[A]), list(df[B])
+    zl = [None if (v is None or math.isnan(v)) else float(v) for v in z]
+    first = next((i for i, v in enumerate(zl) if v is not None), None)
+    if first is None or len(zl) - first < 30:
+        return None
+    split = first + (len(zl) - first) // 2
+    dates = [d.strftime("%Y-%m-%d") for d in df.index]
+
+    def hold_pct(p, s, e):
+        return (p[e] / p[s] - 1) * 100
+
+    # 1) tune on the first half only
+    train = []
+    for band in BANDS:
+        g, t, _ = rotate(a[:split + 1], b[:split + 1], zl[:split + 1], band, from_i=first)
+        train.append((g, band, len(t)))
+    best_g, best_band, best_n = max(train, key=lambda r: (r[0], -abs(r[1] - 2)))
+
+    # 2) test that setting on the second half it has never seen
+    g_test, t_test, _ = rotate(a, b, zl, best_band, from_i=split)
+    test_ret = g_test - 100
+    last = len(a) - 1
+    hold_a = hold_pct(a, split, last)
+    hold_b = hold_pct(b, split, last)
+    hold_mix = (hold_a + hold_b) / 2
+
+    if len(t_test) < 2:
+        tone, text = "few", "Too few trades in the test half to judge yet"
+    elif test_ret > max(hold_a, hold_b) and test_ret > 0:
+        tone, text = "works", "Held up - beat holding either stock on data it wasn't tuned on"
+    elif test_ret < hold_mix - 2:
+        tone, text = "opposite", "Fell apart on data it wasn't tuned on"
+    elif test_ret > hold_mix + 2:
+        best = NAMES[A] if hold_a >= hold_b else NAMES[B]
+        tone, text = "flip", f"Mixed - beat holding both, but just holding {best} did better"
+    else:
+        tone, text = "flip", "No better than just holding both"
+
+    # 3) every setting over the whole history, to show how touchy it is
+    table = []
+    for band in BANDS:
+        g, t, _ = rotate(a, b, zl, band, from_i=first)
+        table.append({"band": band, "end": clean(g, 1), "trades": len(t),
+                      "wins": sum(1 for x in t if x > 0)})
+
+    _, _, now_hold = rotate(a, b, zl, best_band, from_i=first)
+    return {
+        "train_from": dates[first], "split": dates[split], "to": dates[last],
+        "best_band": best_band, "train_return": clean(best_g - 100, 1), "train_trades": best_n,
+        "test_return": clean(test_ret, 1), "test_trades": len(t_test),
+        "test_wins": sum(1 for x in t_test if x > 0),
+        "hold_a": clean(hold_a, 1), "hold_b": clean(hold_b, 1), "hold_mix": clean(hold_mix, 1),
+        "tone": tone, "verdict": text,
+        "now_holding": {"A": A, "B": B}.get(now_hold),
+        "table": table,
+        "hold_all_a": clean(hold_pct(a, first, last), 1), "hold_all_b": clean(hold_pct(b, first, last), 1),
+    }
+
+
 def compute(df):
     import numpy as np
 
@@ -201,6 +293,7 @@ def compute(df):
         "stats": {"corr": clean(corr), "corr30": clean(corr30), "beta": clean(beta), "beta30": clean(beta30)},
         "z": zt, "signal": {"code": signal[0], "text": signal[1]},
         "tests": tests,
+        "rotation": rotation(df, z),
         "history": {
             "dates": [d.strftime("%Y-%m-%d") for d in df.index],
             A: [clean(v) for v in df[A]],

@@ -256,6 +256,59 @@ function render(d) {
     ]));
   });
 
+  /* switch strategy, tuned on the first half, tested on the second */
+  var r = d.rotation;
+  if (r) {
+    var who = function (sym) { return sym ? d.names[sym] : "nothing yet"; };
+    app.appendChild(h("h3", { text: "Switch strategy (the YouTube-style one)" }));
+    app.appendChild(h("div", { class: "note", text:
+      "Hold SpaceX once the stretch score drops to -X, switch to Tesla once it climbs to +X. " +
+      "To keep it honest, X is picked using only the first half of the history, then tested on the second half it has never seen. " +
+      "Any setting can look great on data it was tuned on." }));
+
+    function retCell(label, v, strong) {
+      return h("div", {}, [h("span", { class: "l", text: label }), h("span", { class: "v " + cls(v), style: strong ? "font-size:20px" : "", text: pc(v) })]);
+    }
+    app.appendChild(h("div", { class: "box" }, [
+      h("div", { class: "row" }, [h("span", { class: "small dim", text: "TEST ON UNSEEN DATA" }), pill(r.tone)]),
+      h("div", { class: "big", style: "margin:8px 0 4px", text: r.verdict }),
+      h("p", { class: "small dim", style: "margin:0 0 12px", text:
+        "Best setting on " + shortDate(r.train_from) + " to " + shortDate(r.split) + " was ±" + r.best_band +
+        " (" + pc(r.train_return) + " from just " + r.train_trades + " trade" + (r.train_trades === 1 ? "" : "s") + "). " +
+        "Then tested on " + shortDate(r.split) + " to " + shortDate(r.to) + ":" }),
+      h("div", { class: "grid3" }, [
+        retCell("Switch strategy", r.test_return, true),
+        retCell("Just hold " + d.names[A], r.hold_a),
+        retCell("Just hold " + d.names[B], r.hold_b)
+      ]),
+      h("p", { class: "small dim", style: "margin:10px 0 0", text:
+        r.test_trades + " trades in the test half, " + r.test_wins + " made money. Holding both 50/50 would have been " + pc(r.hold_mix) + "." }),
+      h("div", { class: "row", style: "margin-top:12px;border-top:1px solid var(--line);padding-top:10px" }, [
+        h("span", { class: "small dim", text: "Rule says hold right now" }),
+        h("span", { class: "big", style: "color:" + (r.now_holding === d.b ? "var(--spcx)" : "var(--tsla)"), text: who(r.now_holding) })
+      ])
+    ]));
+
+    /* touchiness table */
+    var best = r.table.reduce(function (m, x) { return Math.max(m, x.end || 0); }, 0);
+    var tb = h("div", { class: "box" }, [
+      h("div", { class: "small dim", style: "margin-bottom:8px", text: "EVERY SETTING OVER THE WHOLE HISTORY (£100 becomes...)" })
+    ]);
+    r.table.forEach(function (x) {
+      var w = Math.max(4, Math.min(100, (x.end || 0) / Math.max(best, 100) * 100));
+      tb.appendChild(h("div", { class: "row small", style: "margin-top:6px" }, [
+        h("span", { style: "width:52px", text: "±" + x.band }),
+        h("div", { class: "bar", style: "flex:1;margin:0 10px" }, [h("i", { style: "width:" + w + "%;background:" + (x.end >= 100 ? "#4ade80" : "#f87171") })]),
+        h("span", { style: "width:70px;text-align:right;font-weight:700", text: "£" + Math.round(x.end) }),
+        h("span", { class: "dim", style: "width:70px;text-align:right", text: x.wins + "/" + x.trades + " won" })
+      ]));
+    });
+    tb.appendChild(h("p", { class: "small dim", style: "margin:10px 0 0", text:
+      "Holding Tesla over the same stretch: £" + Math.round(100 + r.hold_all_a) + ". Holding SpaceX: £" + Math.round(100 + r.hold_all_b) +
+      ". If small changes to the setting swing the result from profit to loss, that's a sign the winner was luck, not an edge." }));
+    app.appendChild(tb);
+  }
+
   /* explainer */
   app.appendChild(h("details", {}, [
     h("summary", { text: "What is this, in plain English?" }),
