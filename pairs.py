@@ -165,8 +165,8 @@ def rotation(df, z):
     hold_b = hold_pct(b, split, last)
     hold_mix = (hold_a + hold_b) / 2
 
-    if len(t_test) < 2:
-        tone, text = "few", "Too few trades in the test half to judge yet"
+    if len(t_test) < 4:
+        tone, text = "few", f"Too few trades to judge ({len(t_test)} in the test year)"
     elif test_ret > max(hold_a, hold_b) and test_ret > 0:
         tone, text = "works", "Held up - beat holding either stock on data it wasn't tuned on"
     elif test_ret < hold_mix - 2:
