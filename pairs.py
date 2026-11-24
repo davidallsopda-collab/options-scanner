@@ -221,8 +221,11 @@ def compute(df):
     gap_z = resid / resid_sd
 
     # stretch score: how far the SPCX/TSLA price ratio is from its usual level
-    ratio = df[B] / df[A]
-    z = (ratio - ratio.rolling(WINDOW).mean()) / ratio.rolling(WINDOW).std()
+    # (the chart shows Tesla / SpaceX, like TradingView's TSLA/SPCX; negative score = SpaceX cheap)
+    ratio = df[A] / df[B]
+    mid = ratio.rolling(WINDOW).mean()
+    sd = ratio.rolling(WINDOW).std()
+    z = -(ratio - mid) / sd
 
     # forward results (from that day's close)
     fwd_b1 = rb.shift(-1)
@@ -299,6 +302,9 @@ def compute(df):
             A: [clean(v) for v in df[A]],
             B: [clean(v) for v in df[B]],
             "z": [clean(v) for v in z],
+            "ratio": [clean(v, 4) for v in ratio],
+            "mid": [clean(v, 4) for v in mid],
+            "sd": [clean(v, 5) for v in sd],
         },
     }
 

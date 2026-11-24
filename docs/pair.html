@@ -3,327 +3,362 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0f172a">
+<meta name="theme-color" content="#0b1220">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <title>Musk Pair - Tesla vs SpaceX</title>
 <style>
-  :root { --bg:#0f172a; --card:#1e293b; --line:#334155; --text:#e2e8f0; --dim:#94a3b8;
-          --accent:#38bdf8; --green:#4ade80; --amber:#fbbf24; --orange:#fdba74; --red:#f87171; --violet:#a78bfa;
-          --tsla:#38bdf8; --spcx:#fbbf24; }
+  :root { --bg:#0b1220; --card:#131c2e; --line:#26324a; --text:#e2e8f0; --dim:#8b9ab3;
+          --tsla:#3b82f6; --spcx:#f97316; --green:#4ade80; --red:#f87171; --amber:#fbbf24; }
   * { box-sizing: border-box; }
   body { margin:0; background:var(--bg); color:var(--text);
          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, sans-serif;
-         padding: env(safe-area-inset-top) 16px calc(28px + env(safe-area-inset-bottom)); max-width: 640px; margin: 0 auto; }
-  header { padding:18px 0 6px; display:flex; align-items:center; justify-content:space-between; gap:10px; }
-  h1 { font-size:22px; margin:0; font-weight:700; }
-  h3 { font-size:16px; margin:20px 0 8px; font-weight:700; }
-  .sub { color:var(--dim); font-size:13px; line-height:1.45; margin:4px 0 0; }
-  .sub.old { color:var(--amber); }
-  .iconbtn { display:inline-flex; align-items:center; min-height:44px; padding:0 14px; border-radius:12px; border:1px solid var(--line);
-             background:var(--card); color:var(--text); font-size:14px; font-weight:600; text-decoration:none; }
-  .box { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:14px; margin-bottom:12px; }
-  .row { display:flex; align-items:baseline; justify-content:space-between; gap:10px; }
-  .big { font-size:20px; font-weight:700; }
-  .huge { font-size:40px; font-weight:800; line-height:1; }
-  .dim { color:var(--dim); }
-  .small { font-size:13px; line-height:1.5; }
-  .pill { font-size:12px; font-weight:700; letter-spacing:.04em; border-radius:999px; padding:3px 10px; border:1px solid; white-space:nowrap; }
-  .grid3 { display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:8px; }
-  .grid3 span.l { display:block; font-size:12px; color:var(--dim); }
-  .grid3 span.v { display:block; font-size:16px; font-weight:700; }
-  .g { color:var(--green); } .o { color:var(--orange); } .a { color:var(--amber); } .r { color:var(--red); }
-  .legend { display:flex; gap:14px; font-size:12px; color:var(--dim); padding:0 0 6px; }
-  .legend i { display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:5px; vertical-align:-1px; }
+         padding: env(safe-area-inset-top) 12px calc(28px + env(safe-area-inset-bottom)); max-width: 680px; margin: 0 auto; }
+  header { padding:14px 2px 8px; display:flex; align-items:center; justify-content:space-between; gap:10px; }
+  h1 { font-size:20px; margin:0; font-weight:800; }
+  h1 .t { color:var(--tsla); } h1 .s { color:var(--spcx); }
+  .upd { color:var(--dim); font-size:12px; }
+  .upd.old { color:var(--amber); }
+  .back { display:inline-flex; align-items:center; min-height:40px; padding:0 12px; border-radius:10px; border:1px solid var(--line);
+          background:var(--card); color:var(--text); font-size:14px; font-weight:600; text-decoration:none; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:12px; margin-bottom:10px; }
+
+  /* hero */
+  .hero { display:flex; align-items:center; gap:12px; border-radius:14px; padding:14px; margin-bottom:10px; color:#fff; }
+  .hero .lbl { font-size:12px; font-weight:700; letter-spacing:.08em; opacity:.85; }
+  .hero .what { font-size:30px; font-weight:900; line-height:1.05; }
+  .hero .score { margin-left:auto; text-align:right; }
+  .hero .score b { display:block; font-size:30px; font-weight:900; line-height:1; }
+  .hero .score span { font-size:11px; opacity:.85; }
+  .meter { position:relative; height:10px; border-radius:999px; margin:4px 2px 4px;
+           background:linear-gradient(90deg, var(--spcx) 0%, #334155 33%, #334155 67%, var(--tsla) 100%); }
+  .meter b { position:absolute; top:-5px; width:6px; height:20px; border-radius:3px; background:#fff; transform:translateX(-3px); box-shadow:0 0 0 2px var(--bg); }
+  .meterlab { display:flex; justify-content:space-between; font-size:11px; color:var(--dim); font-weight:600; }
+
+  /* chips */
+  .chips { display:flex; gap:6px; overflow-x:auto; padding:2px 0 10px; }
+  .chip { flex:1; min-width:50px; min-height:38px; border-radius:10px; border:1px solid var(--line); background:#0f172a;
+          color:var(--text); font-size:14px; font-weight:700; cursor:pointer; position:relative; }
+  .chip.on { background:#e2e8f0; color:#0b1220; border-color:#e2e8f0; }
+  .chip .star { position:absolute; top:-6px; right:-2px; font-size:11px; color:var(--amber); }
+  .legend { display:flex; flex-wrap:wrap; gap:4px 14px; font-size:12px; color:var(--dim); font-weight:600; padding:0 2px 6px; }
+  .legend i { display:inline-block; width:14px; height:4px; border-radius:2px; margin-right:6px; vertical-align:3px; }
   svg { display:block; width:100%; height:auto; }
-  .meter { position:relative; height:12px; border-radius:999px; margin:16px 0 6px;
-           background:linear-gradient(90deg, #166534 0%, #334155 30%, #334155 70%, #92400e 100%); }
-  .meter b { position:absolute; top:-5px; width:4px; height:22px; border-radius:2px; background:#fff; transform:translateX(-2px); }
-  .meterlab { display:flex; justify-content:space-between; font-size:11px; color:var(--dim); }
-  .note { border:1px dashed #475569; border-radius:12px; padding:12px 14px; font-size:14px; color:#cbd5e1; line-height:1.5; margin-bottom:12px; }
-  details { margin-bottom:12px; }
-  summary { min-height:44px; display:flex; align-items:center; font-size:14px; font-weight:600; color:var(--accent); cursor:pointer; }
-  details p { margin:0 0 10px; font-size:14px; line-height:1.6; color:#cbd5e1; }
-  .bar { height:8px; border-radius:999px; background:#334155; overflow:hidden; margin:8px 0 4px; }
-  .bar i { display:block; height:100%; }
-  footer { color:var(--dim); font-size:12px; line-height:1.55; border-top:1px solid var(--line); padding-top:14px; margin-top:8px; }
+
+  /* tiles */
+  .tiles { display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:6px; margin-top:10px; }
+  .tile { border-radius:10px; padding:8px 6px; text-align:center; background:#0f172a; border:1px solid var(--line); }
+  .tile .l { font-size:11px; color:var(--dim); font-weight:600; }
+  .tile .v { font-size:19px; font-weight:800; margin-top:2px; }
+  .tile.win { background:rgba(74,222,128,.12); border-color:rgba(74,222,128,.5); }
+  .tile.lose { background:rgba(248,113,113,.12); border-color:rgba(248,113,113,.5); }
+  .g { color:var(--green); } .r { color:var(--red); } .dim { color:var(--dim); }
+
+  /* today */
+  .today { display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:6px; }
+  .today .tile .v { font-size:22px; }
+  .tag { display:inline-block; font-size:12px; font-weight:800; letter-spacing:.05em; border-radius:999px; padding:4px 10px; }
+
+  /* tests */
+  .sect { font-size:13px; font-weight:800; letter-spacing:.06em; color:var(--dim); margin:16px 2px 8px; }
+  .trow { display:flex; align-items:center; gap:10px; padding:10px 0; border-top:1px solid var(--line); }
+  .trow:first-child { border-top:0; padding-top:2px; }
+  .dot { width:14px; height:14px; border-radius:50%; flex:none; }
+  .tname { flex:1; font-size:14px; font-weight:600; line-height:1.3; }
+  .tname small { display:block; color:var(--dim); font-weight:500; font-size:12px; }
+  .wbar { width:70px; height:8px; border-radius:999px; background:#26324a; overflow:hidden; flex:none; }
+  .wbar i { display:block; height:100%; }
+  .wpc { width:40px; text-align:right; font-size:14px; font-weight:800; flex:none; }
+
+  details { margin-bottom:10px; background:var(--card); border:1px solid var(--line); border-radius:14px; padding:0 12px; }
+  summary { min-height:46px; display:flex; align-items:center; font-size:14px; font-weight:700; color:var(--dim); cursor:pointer; list-style:none; }
+  summary::-webkit-details-marker { display:none; }
+  summary::after { content:"+"; margin-left:auto; font-size:20px; }
+  details[open] summary::after { content:"–"; }
+  details p, details li { margin:0 0 10px; font-size:14px; line-height:1.55; color:#cbd5e1; }
+  details ul { padding-left:18px; margin:0 0 10px; }
+  footer { color:var(--dim); font-size:11px; line-height:1.5; padding:6px 2px; }
 </style>
 </head>
 <body>
 <header>
-  <h1>Musk Pair</h1>
-  <a class="iconbtn" href="./">&larr; Scanner</a>
+  <div>
+    <h1><span class="t">TSLA</span> / <span class="s">SPCX</span></h1>
+    <div class="upd" id="updated">Loading...</div>
+  </div>
+  <a class="back" href="./">&larr; Scanner</a>
 </header>
-<div class="sub" id="updated">Loading...</div>
-<div class="sub">Tesla vs SpaceX. Paper trading. A guide, not a prediction.</div>
 
 <main id="app"></main>
 
-<footer>
-  Prices come from Yahoo and can be a few minutes behind. This updates every 15 minutes or so while the
-  US market is open. SpaceX has only been listed since 12 June 2026, so there isn't much history yet and
-  any pattern here could easily be luck. Pairs trading is not arbitrage: both stocks can fall together and
-  you can lose money. Not financial advice.
-</footer>
+<footer>Paper trading only. Prices from Yahoo, a few minutes behind. Not financial advice.</footer>
 
 <script>
 function h(tag, attrs, kids) {
   var e = document.createElement(tag);
   Object.keys(attrs || {}).forEach(function (k) {
     if (k === "text") e.textContent = attrs[k];
-    else if (k === "html") e.innerHTML = attrs[k];
+    else if (k === "onclick") e.onclick = attrs[k];
     else e.setAttribute(k, attrs[k]);
   });
   (kids || []).forEach(function (c) { if (c) e.appendChild(typeof c === "string" ? document.createTextNode(c) : c); });
   return e;
 }
-function sgn(n, d) { if (n == null) return "-"; return (n >= 0 ? "+" : "") + n.toFixed(d == null ? 1 : d); }
+function sgn(n, d) { return n == null ? "-" : (n >= 0 ? "+" : "") + n.toFixed(d == null ? 1 : d); }
 function pc(n) { return n == null ? "-" : sgn(n) + "%"; }
-function px(n) { return n == null ? "-" : "$" + Number(n).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
-function cls(n) { return n == null ? "" : n >= 0 ? "g" : "r"; }
+function gc(n) { return n == null ? "" : n >= 0 ? "g" : "r"; }
+function money(v) { return "£" + Math.round(v); }
 function ago(iso) {
   var m = Math.round((Date.now() - new Date(iso)) / 60000);
-  if (m < 1) return "just now";
-  if (m < 60) return m + " min ago";
-  var hr = Math.round(m / 60);
-  if (hr < 24) return hr + " hr ago";
-  return Math.round(hr / 24) + " days ago";
+  if (m < 1) return "just now"; if (m < 60) return m + " min ago";
+  var hr = Math.round(m / 60); return hr < 24 ? hr + " hr ago" : Math.round(hr / 24) + " days ago";
 }
-function shortDate(s) { var d = new Date(s + "T12:00:00"); return d.toLocaleDateString("en-GB", { day: "numeric", month: "short" }); }
+function shortDate(s) { return new Date(s + "T12:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short" }); }
+var TSLA = "#3b82f6", SPCX = "#f97316";
 
-var TONE = {
-  cheap:   ["#4ade80", "SPACEX CHEAP"],
-  dear:    ["#fbbf24", "SPACEX DEAR"],
-  lean:    ["#38bdf8", "WATCH"],
-  normal:  ["#94a3b8", "NORMAL"],
-  none:    ["#94a3b8", "WAITING"],
-  works:   ["#4ade80", "WORKED SO FAR"],
-  opposite:["#f87171", "OPPOSITE"],
-  flip:    ["#94a3b8", "COIN FLIP"],
-  few:     ["#fbbf24", "TOO FEW"]
-};
-function pill(code) { var t = TONE[code] || TONE.none; return h("span", { class: "pill", style: "color:" + t[0] + ";border-color:" + t[0], text: t[1] }); }
+/* same switch rule as pairs.py: hold SpaceX once the score hits -band, Tesla once it hits +band */
+function runSwitch(H, band) {
+  var a = H.TSLA, b = H.SPCX, z = H.z, n = z.length;
+  var hold = null, cap = 100, entry = null, trades = [], holds = [], flips = [], first = null;
+  for (var i = 0; i < n - 1; i++) {
+    var zi = z[i];
+    if (zi != null) {
+      if (first === null) { first = i; }
+      var want = zi <= -band ? "SPCX" : zi >= band ? "TSLA" : hold;
+      if (want !== hold) {
+        if (hold) trades.push((cap / entry - 1) * 100);
+        hold = want; entry = cap; flips.push({ i: i, to: want });
+      }
+    }
+    holds.push(hold);
+    if (hold) { var p = hold === "SPCX" ? b : a; cap *= p[i + 1] / p[i]; }
+  }
+  if (hold) trades.push((cap / entry - 1) * 100);
+  var s = first || 0;
+  return { end: cap, trades: trades, wins: trades.filter(function (t) { return t > 0; }).length,
+           holds: holds, flips: flips, now: hold,
+           holdT: a[n - 1] / a[s] * 100, holdS: b[n - 1] / b[s] * 100 };
+}
 
-/* ---------- charts (plain SVG) ---------- */
+/* ---------- the main chart ---------- */
 function svgEl(tag, attrs, text) {
   var e = document.createElementNS("http://www.w3.org/2000/svg", tag);
   Object.keys(attrs).forEach(function (k) { e.setAttribute(k, attrs[k]); });
   if (text != null) e.textContent = text;
   return e;
 }
-function lineChart(dates, series, opts) {
-  var W = 600, H = opts.h || 220, L = 36, R = 10, T = 10, B = 24;
-  var all = [];
-  series.forEach(function (s) { s.v.forEach(function (v) { if (v != null) all.push(v); }); });
-  (opts.bands || []).forEach(function (b) { all.push(b); all.push(-b); });
-  var lo = Math.min.apply(null, all), hi = Math.max.apply(null, all);
-  var pad = (hi - lo) * 0.08 || 1; lo -= pad; hi += pad;
-  var n = dates.length;
-  function X(i) { return L + i / Math.max(1, n - 1) * (W - L - R); }
-  function Y(v) { return T + (hi - v) / (hi - lo) * (H - T - B); }
-  var svg = svgEl("svg", { viewBox: "0 0 " + W + " " + H, role: "img", "aria-label": opts.label || "chart" });
+function mainChart(H, band, sw) {
+  var W = 640, Ht = 340, L = 6, R = 44, T = 14, B = 24;
+  var r = H.ratio, n = r.length;
+  var up = H.mid.map(function (m, i) { return m == null ? null : m + band * H.sd[i]; });
+  var dn = H.mid.map(function (m, i) { return m == null ? null : m - band * H.sd[i]; });
+  var all = r.concat(up, dn).filter(function (v) { return v != null; });
+  var lo = Math.min.apply(null, all), hi = Math.max.apply(null, all), pad = (hi - lo) * .1; lo -= pad; hi += pad;
+  function X(i) { return L + i / (n - 1) * (W - L - R); }
+  function Y(v) { return T + (hi - v) / (hi - lo) * (Ht - T - B); }
+  var svg = svgEl("svg", { viewBox: "0 0 " + W + " " + Ht, role: "img", "aria-label": "Tesla to SpaceX ratio with buy signals" });
 
-  if (opts.bands) {
-    var b = opts.bands[0];
-    svg.appendChild(svgEl("rect", { x: L, y: T, width: W - L - R, height: Math.max(0, Y(b) - T), fill: "#92400e", opacity: .18 }));
-    svg.appendChild(svgEl("rect", { x: L, y: Y(-b), width: W - L - R, height: Math.max(0, H - B - Y(-b)), fill: "#166534", opacity: .22 }));
-    [b, 0, -b].forEach(function (v) {
-      svg.appendChild(svgEl("line", { x1: L, x2: W - R, y1: Y(v), y2: Y(v), stroke: v === 0 ? "#64748b" : "#475569", "stroke-dasharray": v === 0 ? "" : "4 4" }));
-      svg.appendChild(svgEl("text", { x: L - 6, y: Y(v) + 4, fill: "#94a3b8", "font-size": 11, "text-anchor": "end" }, (v > 0 ? "+" : "") + v));
-    });
-  } else {
-    var steps = 4;
-    for (var k = 0; k <= steps; k++) {
-      var v = lo + (hi - lo) * k / steps;
-      svg.appendChild(svgEl("line", { x1: L, x2: W - R, y1: Y(v), y2: Y(v), stroke: "#1f2a3d" }));
-      svg.appendChild(svgEl("text", { x: L - 6, y: Y(v) + 4, fill: "#94a3b8", "font-size": 11, "text-anchor": "end" }, Math.round(v)));
-    }
-    if (opts.base != null) svg.appendChild(svgEl("line", { x1: L, x2: W - R, y1: Y(opts.base), y2: Y(opts.base), stroke: "#64748b", "stroke-dasharray": "4 4" }));
-  }
-  [0, Math.floor((n - 1) / 2), n - 1].forEach(function (i, j) {
-    svg.appendChild(svgEl("text", { x: X(i), y: H - 6, fill: "#94a3b8", "font-size": 11, "text-anchor": ["start", "middle", "end"][j] }, shortDate(dates[i])));
+  // shaded background for what you'd be holding
+  sw.holds.forEach(function (hd, i) {
+    if (!hd) return;
+    svg.appendChild(svgEl("rect", { x: X(i), y: T, width: X(i + 1) - X(i) + .5, height: Ht - T - B, fill: hd === "SPCX" ? SPCX : TSLA, opacity: .07 }));
   });
-  series.forEach(function (s) {
-    var d = "", pen = false;
-    s.v.forEach(function (v, i) {
-      if (v == null) { pen = false; return; }
-      d += (pen ? "L" : "M") + X(i).toFixed(1) + " " + Y(v).toFixed(1); pen = true;
-    });
-    svg.appendChild(svgEl("path", { d: d, fill: "none", stroke: s.c, "stroke-width": 2.2, "stroke-linejoin": "round" }));
-    for (var i = n - 1; i >= 0; i--) if (s.v[i] != null) {
-      svg.appendChild(svgEl("circle", { cx: X(i), cy: Y(s.v[i]), r: 4, fill: s.c }));
-      break;
-    }
+  // grid + price labels on the right like TradingView
+  for (var k = 0; k <= 4; k++) {
+    var v = lo + (hi - lo) * k / 4;
+    svg.appendChild(svgEl("line", { x1: L, x2: W - R, y1: Y(v), y2: Y(v), stroke: "#1c2740" }));
+    if (Math.abs(Y(v) - Y(r[n - 1])) > 16) svg.appendChild(svgEl("text", { x: W - R + 6, y: Y(v) + 4, fill: "#8b9ab3", "font-size": 12 }, v.toFixed(2)));
+  }
+  // normal-zone band
+  var top = "", bot = "", started = false;
+  for (var i = 0; i < n; i++) if (up[i] != null) { top += (started ? "L" : "M") + X(i).toFixed(1) + " " + Y(up[i]).toFixed(1); started = true; }
+  for (var j = n - 1; j >= 0; j--) if (dn[j] != null) bot += "L" + X(j).toFixed(1) + " " + Y(dn[j]).toFixed(1);
+  svg.appendChild(svgEl("path", { d: top + bot + "Z", fill: "#94a3b8", opacity: .13 }));
+  svg.appendChild(svgEl("path", { d: top, fill: "none", stroke: SPCX, "stroke-width": 1.2, "stroke-dasharray": "5 4", opacity: .9 }));
+  var dpath = "", s2 = false;
+  for (var q = 0; q < n; q++) if (dn[q] != null) { dpath += (s2 ? "L" : "M") + X(q).toFixed(1) + " " + Y(dn[q]).toFixed(1); s2 = true; }
+  svg.appendChild(svgEl("path", { d: dpath, fill: "none", stroke: TSLA, "stroke-width": 1.2, "stroke-dasharray": "5 4", opacity: .9 }));
+
+  // ratio line, coloured by what you'd be holding
+  for (var m = 0; m < n - 1; m++) {
+    if (r[m] == null || r[m + 1] == null) continue;
+    var hd = sw.holds[m];
+    svg.appendChild(svgEl("line", { x1: X(m), y1: Y(r[m]), x2: X(m + 1), y2: Y(r[m + 1]),
+      stroke: hd === "SPCX" ? SPCX : hd === "TSLA" ? TSLA : "#64748b", "stroke-width": 2.6, "stroke-linecap": "round" }));
+  }
+  // buy markers
+  sw.flips.forEach(function (f) {
+    var x = X(f.i), y = Y(r[f.i]), isS = f.to === "SPCX", c = isS ? SPCX : TSLA;
+    var ty = isS ? y - 12 : y + 12, dir = isS ? 1 : -1;
+    svg.appendChild(svgEl("path", { d: "M" + x + " " + (y + dir * -4) + " l-6 " + (-dir * 9) + " h12 Z", fill: c }));
+    var lw = 70, lx = Math.max(L, Math.min(W - R - lw, x - lw / 2)), ly = isS ? ty - 34 : ty + 8;
+    svg.appendChild(svgEl("rect", { x: lx, y: ly, width: lw, height: 26, rx: 6, fill: c }));
+    svg.appendChild(svgEl("text", { x: lx + lw / 2, y: ly + 18, fill: "#fff", "font-size": 13, "font-weight": 800, "text-anchor": "middle" }, "Buy " + f.to));
+  });
+  // today's price tag on the right
+  var lv = r[n - 1];
+  svg.appendChild(svgEl("rect", { x: W - R + 2, y: Y(lv) - 10, width: R - 2, height: 20, rx: 4, fill: sw.now === "SPCX" ? SPCX : TSLA }));
+  svg.appendChild(svgEl("text", { x: W - R + 6, y: Y(lv) + 5, fill: "#fff", "font-size": 12, "font-weight": 800 }, lv.toFixed(2)));
+  // dates
+  [0, Math.floor((n - 1) / 2), n - 1].forEach(function (i, j) {
+    svg.appendChild(svgEl("text", { x: X(i), y: Ht - 6, fill: "#8b9ab3", "font-size": 12, "text-anchor": ["start", "middle", "end"][j] }, shortDate(H.dates[i])));
   });
   return svg;
 }
 
+function smallChart(dates, series, base) {
+  var W = 640, Ht = 200, L = 6, R = 44, T = 10, B = 22, n = dates.length, all = [];
+  series.forEach(function (s) { s.v.forEach(function (v) { if (v != null) all.push(v); }); });
+  var lo = Math.min.apply(null, all), hi = Math.max.apply(null, all), pad = (hi - lo) * .08; lo -= pad; hi += pad;
+  function X(i) { return L + i / (n - 1) * (W - L - R); }
+  function Y(v) { return T + (hi - v) / (hi - lo) * (Ht - T - B); }
+  var svg = svgEl("svg", { viewBox: "0 0 " + W + " " + Ht });
+  for (var k = 0; k <= 3; k++) { var v = lo + (hi - lo) * k / 3;
+    svg.appendChild(svgEl("line", { x1: L, x2: W - R, y1: Y(v), y2: Y(v), stroke: "#1c2740" }));
+    svg.appendChild(svgEl("text", { x: W - R + 6, y: Y(v) + 4, fill: "#8b9ab3", "font-size": 12 }, Math.round(v))); }
+  if (base != null) svg.appendChild(svgEl("line", { x1: L, x2: W - R, y1: Y(base), y2: Y(base), stroke: "#64748b", "stroke-dasharray": "4 4" }));
+  series.forEach(function (s) { var d = "", pen = false;
+    s.v.forEach(function (v, i) { if (v == null) { pen = false; return; } d += (pen ? "L" : "M") + X(i).toFixed(1) + " " + Y(v).toFixed(1); pen = true; });
+    svg.appendChild(svgEl("path", { d: d, fill: "none", stroke: s.c, "stroke-width": 2.4 })); });
+  return svg;
+}
+
 /* ---------- page ---------- */
-function render(d) {
-  var app = document.getElementById("app");
+var DATA = null, BAND = null;
+
+function render() {
+  var d = DATA, H = d.history, app = document.getElementById("app");
   app.innerHTML = "";
-  var A = d.a, B = d.b, nA = d.names[A], nB = d.names[B];
   var upd = document.getElementById("updated");
-  var mins = (Date.now() - new Date(d.updated_utc)) / 60000;
-  upd.textContent = "Updated " + ago(d.updated_utc) + " · " + d.days + " trading days of history";
-  upd.className = "sub" + (mins > 60 * 20 ? " old" : "");
+  upd.textContent = "Updated " + ago(d.updated_utc);
+  upd.className = "upd" + ((Date.now() - new Date(d.updated_utc)) / 3600000 > 20 ? " old" : "");
+  var rot = d.rotation || {};
+  var bands = (rot.table || []).map(function (x) { return x.band; });
+  if (!bands.length) bands = [1, 1.5, 2];
+  if (BAND === null) BAND = rot.best_band || 1.5;
+  var sw = runSwitch(H, BAND);
 
-  /* signal card */
-  var z = d.z, zClamp = z == null ? 0 : Math.max(-3, Math.min(3, z));
-  var signalBox = h("div", { class: "box" }, [
-    h("div", { class: "row" }, [h("span", { class: "small dim", text: "STRETCH SCORE" }), pill(d.signal.code)]),
-    h("div", { class: "row", style: "align-items:flex-end;margin-top:8px" }, [
-      h("span", { class: "huge", text: z == null ? "-" : sgn(z) }),
-      h("span", { class: "big", style: "text-align:right;flex:1", text: d.signal.text })
-    ]),
-    h("div", { class: "meter" }, [h("b", { style: "left:" + ((zClamp + 3) / 6 * 100) + "%" })]),
-    h("div", { class: "meterlab" }, [h("span", { text: "SpaceX cheap" }), h("span", { text: "normal" }), h("span", { text: "SpaceX dear" })]),
-    h("p", { class: "small dim", style: "margin:10px 0 0", text:
-      "Compares the SpaceX-to-Tesla price ratio with its last " + d.window + " days. 0 = normal. " +
-      "Past ±" + d.z_signal + " is unusually stretched, which is when a pair trader starts to look for it to snap back." })
-  ]);
-  app.appendChild(signalBox);
-
-  /* today */
-  var t = d.today;
-  var tagTxt = { lagging: ["SPACEX LAGGING", "#4ade80"], ahead: ["SPACEX AHEAD", "#fbbf24"], inline: ["IN LINE", "#94a3b8"], none: ["-", "#94a3b8"] }[t.tag];
-  var gapLine;
-  if (t.a_move == null) gapLine = "No moves yet today.";
-  else gapLine = nA + " " + pc(t.a_move) + ". SpaceX usually moves about " + (d.stats.beta || 0).toFixed(1) + "x Tesla, so you'd expect about " +
-    pc(t.b_expected) + ". It's " + pc(t.b_move) + ", so it's " + (t.gap >= 0 ? "ahead by " : "behind by ") + Math.abs(t.gap).toFixed(1) + " points.";
-  app.appendChild(h("h3", { text: "Today (" + shortDate(d.last_date) + ")" }));
-  app.appendChild(h("div", { class: "box" }, [
-    h("div", { class: "row" }, [h("span", { class: "small dim", text: "IS SPACEX KEEPING UP?" }),
-      h("span", { class: "pill", style: "color:" + tagTxt[1] + ";border-color:" + tagTxt[1], text: tagTxt[0] })]),
-    h("div", { class: "grid3", style: "margin-top:10px" }, [
-      h("div", {}, [h("span", { class: "l", text: nA + " " + px(d.price[A]) }), h("span", { class: "v " + cls(t.a_move), text: pc(t.a_move) })]),
-      h("div", {}, [h("span", { class: "l", text: nB + " " + px(d.price[B]) }), h("span", { class: "v " + cls(t.b_move), text: pc(t.b_move) })]),
-      h("div", {}, [h("span", { class: "l", text: "SpaceX vs expected" }), h("span", { class: "v " + cls(t.gap), text: t.gap == null ? "-" : sgn(t.gap) + " pts" })])
-    ]),
-    h("p", { class: "small", style: "margin:10px 0 0;color:#cbd5e1", text: gapLine })
+  /* 1. hero: what the rule says right now */
+  var nowC = sw.now === "SPCX" ? SPCX : sw.now === "TSLA" ? TSLA : "#334155";
+  var z = d.z == null ? 0 : Math.max(-3, Math.min(3, d.z));
+  app.appendChild(h("div", { class: "hero", style: "background:linear-gradient(135deg," + nowC + ", " + nowC + "cc)" }, [
+    h("div", {}, [h("div", { class: "lbl", text: "RIGHT NOW (±" + BAND + ")" }),
+                  h("div", { class: "what", text: sw.now ? "HOLD " + sw.now : "WAIT" })]),
+    h("div", { class: "score" }, [h("b", { text: d.z == null ? "-" : sgn(d.z) }), h("span", { text: "stretch" })])
+  ]));
+  app.appendChild(h("div", { class: "card", style: "padding:10px 12px" }, [
+    h("div", { class: "meter" }, [h("b", { style: "left:" + ((z + 3) / 6 * 100) + "%" })]),
+    h("div", { class: "meterlab" }, [h("span", { style: "color:" + SPCX, text: "SpaceX cheap" }), h("span", { text: "normal" }), h("span", { style: "color:" + TSLA, text: "Tesla cheap" })])
   ]));
 
-  /* chart: rebased prices */
-  var H0 = d.history, base = function (arr) { var f = arr.find(function (v) { return v != null; }); return arr.map(function (v) { return v == null ? null : v / f * 100; }); };
-  app.appendChild(h("h3", { text: "Since SpaceX listed (both start at 100)" }));
-  var c1 = h("div", { class: "box" }, [
-    h("div", { class: "legend" }, [h("span", {}, [h("i", { style: "background:var(--tsla)" }), "Tesla " + pc(H0[A][H0[A].length - 1] / H0[A][0] * 100 - 100)]),
-                                    h("span", {}, [h("i", { style: "background:var(--spcx)" }), "SpaceX " + pc(H0[B][H0[B].length - 1] / H0[B][0] * 100 - 100)])])
-  ]);
-  c1.appendChild(lineChart(H0.dates, [{ v: base(H0[A]), c: "#38bdf8" }, { v: base(H0[B]), c: "#fbbf24" }], { base: 100, label: "Tesla and SpaceX rebased to 100" }));
-  app.appendChild(c1);
-
-  /* chart: stretch score */
-  app.appendChild(h("h3", { text: "Stretch score over time" }));
-  var c2 = h("div", { class: "box" }, [h("div", { class: "legend" }, [
-    h("span", {}, [h("i", { style: "background:#166534" }), "SpaceX cheap zone"]),
-    h("span", {}, [h("i", { style: "background:#92400e" }), "SpaceX dear zone"])])]);
-  c2.appendChild(lineChart(H0.dates, [{ v: H0.z, c: "#a78bfa" }], { bands: [d.z_signal], label: "Stretch score" }));
-  app.appendChild(c2);
-
-  /* how they move together */
-  var s = d.stats;
-  app.appendChild(h("h3", { text: "How they move together" }));
-  app.appendChild(h("div", { class: "box" }, [
-    h("div", { class: "grid3" }, [
-      h("div", {}, [h("span", { class: "l", text: "In step (all)" }), h("span", { class: "v", text: s.corr == null ? "-" : Math.round(s.corr * 100) + "%" })]),
-      h("div", {}, [h("span", { class: "l", text: "In step (30d)" }), h("span", { class: "v", text: s.corr30 == null ? "-" : Math.round(s.corr30 * 100) + "%" })]),
-      h("div", {}, [h("span", { class: "l", text: "SpaceX size vs Tesla" }), h("span", { class: "v", text: s.beta == null ? "-" : s.beta.toFixed(2) + "x" })])
-    ]),
-    h("p", { class: "small dim", style: "margin:10px 0 0", text:
-      "\"In step\" is the correlation: 100% means they always move together, 0% means no link at all. " +
-      "\"Size\" means a 1% Tesla move usually comes with about a " + (s.beta || 0).toFixed(1) + "% SpaceX move" +
-      (s.beta30 != null ? " (" + s.beta30.toFixed(1) + "% over the last 30 days)." : ".") })
-  ]));
-
-  /* backtests */
-  app.appendChild(h("h3", { text: "Does the idea actually work? (history test)" }));
-  app.appendChild(h("div", { class: "note", text:
-    "Each idea has been checked against every trading day since SpaceX listed. \"Normal\" is what you'd have got on any random day, for comparison. " +
-    "With this little history, treat anything here as a hint, not proof." }));
-  d.tests.forEach(function (x) {
-    var w = x.win_rate || 0;
-    app.appendChild(h("div", { class: "box" }, [
-      h("div", { class: "row" }, [h("span", { style: "font-weight:700;font-size:15px", text: x.name }), pill(x.tone)]),
-      h("p", { class: "small dim", style: "margin:6px 0 10px", text: x.explain }),
-      h("div", { class: "grid3" }, [
-        h("div", {}, [h("span", { class: "l", text: "Times it fired" }), h("span", { class: "v", text: String(x.n) })]),
-        h("div", {}, [h("span", { class: "l", text: "Average result" }), h("span", { class: "v " + cls(x.avg), text: x.n ? pc(x.avg) : "-" })]),
-        h("div", {}, [h("span", { class: "l", text: "Normal day" }), h("span", { class: "v dim", text: pc(x.baseline) })])
-      ]),
-      x.n ? h("div", { class: "bar" }, [h("i", { style: "width:" + w + "%;background:" + (w >= 60 ? "#4ade80" : w <= 40 ? "#f87171" : "#94a3b8") })]) : null,
-      x.n ? h("div", { class: "small dim", text: x.win_word + ": " + w + "% of the time" + (x.recent.length ? " · last: " + x.recent.map(shortDate).join(", ") : "") }) : null
-    ]));
+  /* 2. main chart */
+  var chips = h("div", { class: "chips" });
+  bands.forEach(function (b) {
+    chips.appendChild(h("button", { class: "chip" + (b === BAND ? " on" : ""), type: "button", onclick: function () { BAND = b; render(); } },
+      ["±" + b, b === rot.best_band ? h("span", { class: "star", text: "★" }) : null]));
   });
+  var holdTile = function (label, v, mine) {
+    return h("div", { class: "tile" + (mine ? (v >= 100 ? " win" : " lose") : "") }, [
+      h("div", { class: "l", text: label }), h("div", { class: "v " + (v >= 100 ? "g" : "r"), text: money(v) })]);
+  };
+  var chartCard = h("div", { class: "card" }, [
+    chips,
+    h("div", { class: "legend" }, [
+      h("span", {}, [h("i", { style: "background:" + TSLA }), "holding Tesla"]),
+      h("span", {}, [h("i", { style: "background:" + SPCX }), "holding SpaceX"]),
+      h("span", {}, [h("i", { style: "background:#94a3b8;opacity:.5" }), "normal zone"])
+    ])
+  ]);
+  chartCard.appendChild(mainChart(H, BAND, sw));
+  chartCard.appendChild(h("div", { class: "tiles" }, [
+    holdTile("£100 becomes", sw.end, true),
+    h("div", { class: "tile" }, [h("div", { class: "l", text: "Trades won" }),
+      h("div", { class: "v", text: sw.wins + "/" + sw.trades.length })]),
+    holdTile("Just TSLA", sw.holdT),
+    holdTile("Just SPCX", sw.holdS)
+  ]));
+  app.appendChild(chartCard);
 
-  /* switch strategy, tuned on the first half, tested on the second */
-  var r = d.rotation;
-  if (r) {
-    var who = function (sym) { return sym ? d.names[sym] : "nothing yet"; };
-    app.appendChild(h("h3", { text: "Switch strategy (the YouTube-style one)" }));
-    app.appendChild(h("div", { class: "note", text:
-      "Hold SpaceX once the stretch score drops to -X, switch to Tesla once it climbs to +X. " +
-      "To keep it honest, X is picked using only the first half of the history, then tested on the second half it has never seen. " +
-      "Any setting can look great on data it was tuned on." }));
-
-    function retCell(label, v, strong) {
-      return h("div", {}, [h("span", { class: "l", text: label }), h("span", { class: "v " + cls(v), style: strong ? "font-size:20px" : "", text: pc(v) })]);
-    }
-    app.appendChild(h("div", { class: "box" }, [
-      h("div", { class: "row" }, [h("span", { class: "small dim", text: "TEST ON UNSEEN DATA" }), pill(r.tone)]),
-      h("div", { class: "big", style: "margin:8px 0 4px", text: r.verdict }),
-      h("p", { class: "small dim", style: "margin:0 0 12px", text:
-        "Best setting on " + shortDate(r.train_from) + " to " + shortDate(r.split) + " was ±" + r.best_band +
-        " (" + pc(r.train_return) + " from just " + r.train_trades + " trade" + (r.train_trades === 1 ? "" : "s") + "). " +
-        "Then tested on " + shortDate(r.split) + " to " + shortDate(r.to) + ":" }),
-      h("div", { class: "grid3" }, [
-        retCell("Switch strategy", r.test_return, true),
-        retCell("Just hold " + d.names[A], r.hold_a),
-        retCell("Just hold " + d.names[B], r.hold_b)
+  /* 3. honest test */
+  if (rot.verdict) {
+    var tc = { works: "#4ade80", opposite: "#f87171", flip: "#fbbf24", few: "#94a3b8" }[rot.tone] || "#94a3b8";
+    app.appendChild(h("div", { class: "sect", text: "★ TESTED ON DATA IT HADN'T SEEN" }));
+    app.appendChild(h("div", { class: "card", style: "border-color:" + tc }, [
+      h("div", { style: "font-size:16px;font-weight:800;color:" + tc + ";margin-bottom:8px", text: rot.verdict }),
+      h("div", { class: "today" }, [
+        h("div", { class: "tile " + (rot.test_return >= 0 ? "win" : "lose") }, [h("div", { class: "l", text: "Switching" }), h("div", { class: "v " + gc(rot.test_return), text: pc(rot.test_return) })]),
+        h("div", { class: "tile" }, [h("div", { class: "l", style: "color:" + TSLA, text: "Just TSLA" }), h("div", { class: "v " + gc(rot.hold_a), text: pc(rot.hold_a) })]),
+        h("div", { class: "tile" }, [h("div", { class: "l", style: "color:" + SPCX, text: "Just SPCX" }), h("div", { class: "v " + gc(rot.hold_b), text: pc(rot.hold_b) })])
       ]),
-      h("p", { class: "small dim", style: "margin:10px 0 0", text:
-        r.test_trades + " trades in the test half, " + r.test_wins + " made money. Holding both 50/50 would have been " + pc(r.hold_mix) + "." }),
-      h("div", { class: "row", style: "margin-top:12px;border-top:1px solid var(--line);padding-top:10px" }, [
-        h("span", { class: "small dim", text: "Rule says hold right now" }),
-        h("span", { class: "big", style: "color:" + (r.now_holding === d.b ? "var(--spcx)" : "var(--tsla)"), text: who(r.now_holding) })
-      ])
+      h("div", { class: "upd", style: "margin-top:8px", text: shortDate(rot.split) + " – " + shortDate(rot.to) + " · setting ±" + rot.best_band + " · " + rot.test_wins + "/" + rot.test_trades + " trades won" })
     ]));
-
-    /* touchiness table */
-    var best = r.table.reduce(function (m, x) { return Math.max(m, x.end || 0); }, 0);
-    var tb = h("div", { class: "box" }, [
-      h("div", { class: "small dim", style: "margin-bottom:8px", text: "EVERY SETTING OVER THE WHOLE HISTORY (£100 becomes...)" })
-    ]);
-    r.table.forEach(function (x) {
-      var w = Math.max(4, Math.min(100, (x.end || 0) / Math.max(best, 100) * 100));
-      tb.appendChild(h("div", { class: "row small", style: "margin-top:6px" }, [
-        h("span", { style: "width:52px", text: "±" + x.band }),
-        h("div", { class: "bar", style: "flex:1;margin:0 10px" }, [h("i", { style: "width:" + w + "%;background:" + (x.end >= 100 ? "#4ade80" : "#f87171") })]),
-        h("span", { style: "width:70px;text-align:right;font-weight:700", text: "£" + Math.round(x.end) }),
-        h("span", { class: "dim", style: "width:70px;text-align:right", text: x.wins + "/" + x.trades + " won" })
-      ]));
-    });
-    tb.appendChild(h("p", { class: "small dim", style: "margin:10px 0 0", text:
-      "Holding Tesla over the same stretch: £" + Math.round(100 + r.hold_all_a) + ". Holding SpaceX: £" + Math.round(100 + r.hold_all_b) +
-      ". If small changes to the setting swing the result from profit to loss, that's a sign the winner was luck, not an edge." }));
-    app.appendChild(tb);
   }
 
-  /* explainer */
+  /* 4. today */
+  var t = d.today;
+  var tagMap = { lagging: ["SPACEX LAGGING", SPCX], ahead: ["SPACEX AHEAD", TSLA], inline: ["IN LINE", "#475569"], none: ["-", "#475569"] }[t.tag];
+  app.appendChild(h("div", { class: "sect", text: "TODAY " + shortDate(d.last_date).toUpperCase() }));
+  app.appendChild(h("div", { class: "card" }, [
+    h("div", { class: "today" }, [
+      h("div", { class: "tile" }, [h("div", { class: "l", style: "color:" + TSLA, text: "TSLA $" + Math.round(d.price.TSLA) }), h("div", { class: "v " + gc(t.a_move), text: pc(t.a_move) })]),
+      h("div", { class: "tile" }, [h("div", { class: "l", style: "color:" + SPCX, text: "SPCX $" + Math.round(d.price.SPCX) }), h("div", { class: "v " + gc(t.b_move), text: pc(t.b_move) })]),
+      h("div", { class: "tile" }, [h("div", { class: "l", text: "SPCX vs usual" }), h("div", { class: "v " + gc(t.gap), text: sgn(t.gap) })])
+    ]),
+    h("div", { style: "margin-top:10px;text-align:center" }, [h("span", { class: "tag", style: "background:" + tagMap[1] + ";color:#fff", text: tagMap[0] })])
+  ]));
+
+  /* 5. idea checks */
+  app.appendChild(h("div", { class: "sect", text: "DO THE IDEAS WORK? (% OF TIMES THEY PAID)" }));
+  var toneC = { works: "#4ade80", opposite: "#f87171", flip: "#64748b", few: "#fbbf24" };
+  var short = {
+    "Tesla jumps - buy SpaceX next day": "TSLA jumps → buy SPCX (1 day)",
+    "Tesla jumps - hold SpaceX 3 days": "TSLA jumps → buy SPCX (3 days)",
+    "SpaceX jumps - buy Tesla next day": "SPCX jumps → buy TSLA (1 day)",
+    "SpaceX lagged Tesla - does it catch up?": "SPCX lagged → catches up?",
+    "Stretch score very low - SpaceX cheap vs Tesla": "SPCX very cheap → beats TSLA?",
+    "Stretch score very high - SpaceX dear vs Tesla": "TSLA very cheap → beats SPCX?"
+  };
+  var list = h("div", { class: "card" });
+  d.tests.forEach(function (x) {
+    var w = x.win_rate || 0, c = toneC[x.tone] || "#64748b";
+    list.appendChild(h("div", { class: "trow" }, [
+      h("span", { class: "dot", style: "background:" + c }),
+      h("div", { class: "tname" }, [short[x.name] || x.name, h("small", { text: x.n + " times · " + (x.tone === "few" ? "too few to tell" : x.tone === "works" ? "worked so far" : x.tone === "opposite" ? "did the opposite" : "coin flip") })]),
+      h("div", { class: "wbar" }, [h("i", { style: "width:" + w + "%;background:" + c })]),
+      h("div", { class: "wpc", style: "color:" + c, text: x.n ? w + "%" : "-" })
+    ]));
+  });
+  app.appendChild(list);
+
+  /* 6. extra charts, folded away */
+  var more = h("details", {}, [h("summary", { text: "More charts" })]);
+  var base = function (arr) { var f = arr[0]; return arr.map(function (v) { return v == null ? null : v / f * 100; }); };
+  more.appendChild(h("div", { class: "legend", style: "padding-top:0" }, [
+    h("span", {}, [h("i", { style: "background:" + TSLA }), "Tesla"]), h("span", {}, [h("i", { style: "background:" + SPCX }), "SpaceX"]),
+    h("span", { text: "both start at 100 on IPO day" })]));
+  more.appendChild(smallChart(H.dates, [{ v: base(H.TSLA), c: TSLA }, { v: base(H.SPCX), c: SPCX }], 100));
+  more.appendChild(h("div", { style: "height:12px" }));
+  app.appendChild(more);
+
+  /* 7. all the words, folded away */
+  var s = d.stats;
   app.appendChild(h("details", {}, [
-    h("summary", { text: "What is this, in plain English?" }),
-    h("p", { text: "Tesla and SpaceX share a boss, share headlines and there's talk of a merger, so their prices tend to move together. Pairs trading watches for moments when one has run ahead of the other and bets the gap closes again." }),
-    h("p", { text: "It isn't arbitrage. Real arbitrage means a guaranteed profit, like the same thing at two prices at once. Here the gap can keep widening, or both stocks can drop together. A merger announcement would also change everything overnight." }),
-    h("p", { text: "To use it: a low stretch score (green zone) means SpaceX has fallen behind Tesla more than usual. Before acting, check the history test cards. If that idea has been a coin flip so far, the signal on its own isn't worth much." })
+    h("summary", { text: "How it works (the words)" }),
+    h("p", { text: "The line is Tesla's price divided by SpaceX's, same as TSLA/SPCX on TradingView. When it goes up, Tesla is pulling ahead. When it goes down, SpaceX is." }),
+    h("p", { text: "The grey band is the normal zone for the last " + d.window + " days. The buttons (±1, ±1.5...) set how wide it is. When the line pokes out of the top, Tesla has run too far ahead, so the rule switches to SpaceX (orange). When it pokes out of the bottom, it switches to Tesla (blue). The ★ is the setting that did best on the first half of the history." }),
+    h("p", { text: "The stretch score is how far outside normal it is right now. Minus means SpaceX looks cheap, plus means Tesla looks cheap." }),
+    h("p", { text: "\"Tested on data it hadn't seen\" picks the best setting using only " + shortDate(rot.train_from || d.history.dates[0]) + " to " + shortDate(rot.split || d.last_date) + ", then checks how it did afterwards. That's the honest test. Any setting can look great on the data it was picked from." }),
+    h("p", { text: "Today: SpaceX usually moves about " + (s.beta || 0).toFixed(1) + "x Tesla's move. \"SPCX vs usual\" is how many % points it's ahead of or behind that." }),
+    h("p", { text: "They move in step " + Math.round((s.corr || 0) * 100) + "% overall, " + Math.round((s.corr30 || 0) * 100) + "% over the last 30 days." }),
+    h("p", { text: "Idea checks: each idea is tested on every day since SpaceX listed. The bar shows how often it paid. Grey = coin flip, green = worked so far, red = did the opposite, yellow = not enough cases yet." }),
+    h("p", { text: "This is pairs trading, not arbitrage. Both stocks can fall together, and a merger announcement would change everything overnight. History since June is short, so treat it all as hints." })
   ]));
 }
 
 function load() {
   fetch("pairs.json?t=" + Date.now()).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
-    .then(render)
-    .catch(function () {
-      document.getElementById("updated").textContent = "No pair data yet - it fills in on the next update while the US market is open.";
-    });
+    .then(function (d) { DATA = d; render(); })
+    .catch(function () { document.getElementById("updated").textContent = "No data yet - fills in while the US market is open."; });
 }
 load();
 setInterval(function () { if (!document.hidden) load(); }, 5 * 60 * 1000);
