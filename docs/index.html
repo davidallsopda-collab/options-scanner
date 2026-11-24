@@ -394,9 +394,22 @@ function renderTargets(t) {
     empty("Nothing under " + money(budget) + " makes money if " + t.ticker + " only reaches " + px(tg.price) + " by " + fmtDate(tg.date) + ". The calls you can afford need a much bigger move. Try a higher target, or a bigger limit in Settings.");
     return wrap;
   }
-  var A = cands.reduce(function (b, c) { return c.right > b.right ? c : b; });
-  var rest = cands.filter(function (c) { return c !== A; });
-  var B = rest.length ? rest.reduce(function (b, c) { return c.half > b.half ? c : b; }) : null;
+  /* five picks, each for a different reason, no repeats */
+  var used = [];
+  function best(list, key) {
+    var pool = list.filter(function (c) { return used.indexOf(c) < 0; });
+    if (!pool.length) return null;
+    var w = pool.reduce(function (b, c) { return key(c) > key(b) ? c : b; });
+    used.push(w); return w;
+  }
+  var PICKS = [
+    ["BIGGEST PAYOFF IF YOU'RE RIGHT", "#38bdf8", function (c) { return c.right; }],
+    ["HOLDS UP BETTER IF YOU'RE ONLY HALF RIGHT", "#4ade80", function (c) { return c.half; }],
+    ["BEST ODDS OF MAKING MONEY", "#a78bfa", function (c) { return c.odds; }],
+    ["CHEAPEST WAY IN THAT STILL PAYS", "#fbbf24", function (c) { return -c.c.cost; }],
+    ["BEST BALANCE OF ODDS AND PAYOFF", "#f472b6", function (c) { return c.odds * c.right; }]
+  ];
+  var chosen = PICKS.map(function (d) { var c = best(cands, d[2]); return c ? [d[0], d[1], c] : null; }).filter(Boolean);
 
   function card(tag, color, p) {
     function cell(label, v) { return statCell(label, pct(v), v >= 0 ? "g" : "o"); }
@@ -417,9 +430,8 @@ function renderTargets(t) {
       h("div", { class: "small a", text: p.x.days - tDays < 14 ? "All or nothing: it expires around your target date." : "The extra weeks after your date keep some value if the move comes late." })
     ]);
   }
-  wrap.appendChild(card("BIGGEST PAYOFF IF YOU'RE RIGHT", "#38bdf8", A));
-  if (B) wrap.appendChild(card("HOLDS UP BETTER IF YOU'RE ONLY HALF RIGHT", "#4ade80", B));
-  wrap.appendChild(h("div", { class: "small dim", text: "Values on your date are estimates that assume the market's expected price swings stay the same. Halfway there means the stock is at " + px(half) + " on your date. Calls are ranked by what they would be worth if you are right." }));
+  chosen.forEach(function (c) { wrap.appendChild(card(c[0], c[1], c[2])); });
+  wrap.appendChild(h("div", { class: "small dim", text: "Values on your date are estimates that assume the market's expected price swings stay the same. Halfway there means the stock is at " + px(half) + " on your date. Up to five calls are shown, each picked for a different reason, with no repeats." }));
   return wrap;
 }
 
