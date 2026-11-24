@@ -8,7 +8,7 @@ plus the latest live-ish price, and works out:
   - the stretch score: how far the SPCX/TSLA price ratio is from its usual level
   - history tests of the "when one's up, buy the other" ideas
 
-Saves docs/pairs.json. GitHub runs it every 15 minutes while the US market is open
+Used by pears.py (the Pears app). Run on its own it writes docs/pairs.json.
 (see .github/workflows/scan.yml). You can also run it on your PC:  python pairs.py
 """
 

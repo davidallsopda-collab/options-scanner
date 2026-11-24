@@ -1,6 +1,6 @@
 // Lets the page open like an app and keep working with the last results if the signal drops.
-const CACHE = "call-scanner-v3";
-const SHELL = ["./", "index.html", "pair.html", "manifest.webmanifest", "icons/icon-192.png", "icons/icon-512.png", "icons/icon.svg"];
+const CACHE = "call-scanner-v4";
+const SHELL = ["./", "index.html", "manifest.webmanifest", "icons/icon-192.png", "icons/icon-512.png", "icons/icon.svg"];
 
 self.addEventListener("install", function (e) {
   e.waitUntil(caches.open(CACHE).then(function (c) { return c.addAll(SHELL); }).then(function () { return self.skipWaiting(); }));
@@ -15,7 +15,7 @@ self.addEventListener("activate", function (e) {
 self.addEventListener("fetch", function (e) {
   var req = e.request;
   if (req.method !== "GET" || new URL(req.url).origin !== location.origin) return;
-  var fresh = /results\.json|pairs\.json|index\.html|pair\.html|\/$/.test(new URL(req.url).pathname);
+  var fresh = /results\.json|index\.html|\/$/.test(new URL(req.url).pathname);
   if (fresh) {
     // newest first, fall back to the saved copy when offline
     e.respondWith(fetch(req).then(function (res) {
