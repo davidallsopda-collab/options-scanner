@@ -230,6 +230,64 @@ function statCell(label, value, cls) {
   return h("div", null, [h("span", { class: "l", text: label }), h("span", { class: "v " + (cls || ""), text: value })]);
 }
 
+
+/* ---------- little profit chart (works on every card) ---------- */
+var SVGNS = "http://www.w3.org/2000/svg", chartId = 0;
+function sv(tag, attrs, text) {
+  var e = document.createElementNS(SVGNS, tag);
+  for (var k in attrs) e.setAttribute(k, attrs[k]);
+  if (text !== undefined) e.textContent = text;
+  return e;
+}
+function shortMoney(n) {
+  var a = Math.abs(n), sign = n < 0 ? "-" : "+";
+  return sign + "$" + (a >= 10000 ? Math.round(a / 1000) + "k" : a >= 1000 ? (a / 1000).toFixed(1) + "k" : Math.round(a));
+}
+/* o: S (price now), K, cost, iv, Tr (years left on the day we measure), be, target (optional), caption */
+function payoffChart(o) {
+  var W = 300, H = 140, L = 8, R = 8, T = 16, B = 22, id = "pc" + (++chartId);
+  var lo = o.S * 0.8, hi = Math.max(o.S * 1.5, o.be * 1.25, o.target ? o.target * 1.2 : 0);
+  var pts = [], i, N = 60, minY = -o.cost, maxY = o.cost * 0.2;
+  for (i = 0; i <= N; i++) {
+    var P = lo + (hi - lo) * i / N, v = bsCall(P, o.K, o.Tr, o.iv) * 100 - o.cost;
+    pts.push([P, v]); if (v > maxY) maxY = v;
+  }
+  function X(P) { return L + (P - lo) / (hi - lo) * (W - L - R); }
+  function Y(v) { return T + (maxY - v) / (maxY - minY) * (H - T - B); }
+  var y0 = Y(0), line = "", area = "";
+  pts.forEach(function (q, j) { line += (j ? "L" : "M") + X(q[0]).toFixed(1) + " " + Y(q[1]).toFixed(1); });
+  area = line + "L" + X(hi).toFixed(1) + " " + y0.toFixed(1) + "L" + X(lo).toFixed(1) + " " + y0.toFixed(1) + "Z";
+
+  var svg = sv("svg", { viewBox: "0 0 " + W + " " + H, width: "100%", role: "img",
+    "aria-label": "Chart of profit or loss if the share price rises. Break-even " + px(o.be) + "." });
+  var defs = sv("defs", {});
+  defs.appendChild(sv("clipPath", { id: id + "a" })).appendChild(sv("rect", { x: 0, y: 0, width: W, height: y0.toFixed(1) }));
+  defs.appendChild(sv("clipPath", { id: id + "b" })).appendChild(sv("rect", { x: 0, y: y0.toFixed(1), width: W, height: H }));
+  svg.appendChild(defs);
+  svg.appendChild(sv("path", { d: area, fill: "#4ade80", "fill-opacity": "0.25", "clip-path": "url(#" + id + "a)" }));
+  svg.appendChild(sv("path", { d: area, fill: "#fdba74", "fill-opacity": "0.25", "clip-path": "url(#" + id + "b)" }));
+  svg.appendChild(sv("line", { x1: L, x2: W - R, y1: y0.toFixed(1), y2: y0.toFixed(1), stroke: "#64748b", "stroke-width": "1" }));
+
+  function marker(P, color, label, anchor, row) {
+    if (P < lo || P > hi) return;
+    var x = X(P).toFixed(1);
+    svg.appendChild(sv("line", { x1: x, x2: x, y1: T - 2, y2: H - B, stroke: color, "stroke-width": "1", "stroke-dasharray": "3 3" }));
+    svg.appendChild(sv("text", { x: anchor === "end" ? Number(x) - 3 : Number(x) + 3, y: 10 + row * 11, "text-anchor": anchor, fill: color, "font-size": "10" }, label));
+  }
+  marker(o.S, "#94a3b8", "now " + px(o.S).replace(".00", ""), "end", 0);
+  marker(o.be, "#fbbf24", "break-even " + px(o.be).replace(".00", ""), "start", 0);
+  if (o.target) marker(o.target, "#38bdf8", "target " + px(o.target).replace(".00", ""), "start", 1);
+
+  svg.appendChild(sv("path", { d: line, fill: "none", stroke: "#e2e8f0", "stroke-width": "2", "stroke-linejoin": "round" }));
+  svg.appendChild(sv("text", { x: W - R, y: Math.max(Y(maxY) + 12, T + 22), "text-anchor": "end", fill: "#4ade80", "font-size": "11", "font-weight": "700" }, shortMoney(maxY)));
+  svg.appendChild(sv("text", { x: L, y: H - B - 4, "text-anchor": "start", fill: "#fdba74", "font-size": "11", "font-weight": "700" }, shortMoney(-o.cost)));
+  svg.appendChild(sv("text", { x: L, y: H - 6, "text-anchor": "start", fill: "#94a3b8", "font-size": "10" }, px(lo).replace(".00", "")));
+  svg.appendChild(sv("text", { x: W - R, y: H - 6, "text-anchor": "end", fill: "#94a3b8", "font-size": "10" }, px(hi).replace(".00", "")));
+  svg.appendChild(sv("text", { x: W / 2, y: H - 6, "text-anchor": "middle", fill: "#94a3b8", "font-size": "10" }, "share price"));
+
+  return h("div", { style: "margin-top:2px" }, [svg, h("div", { class: "small dim", text: o.caption })]);
+}
+
 function scanCard(t, tagText, tagColor, p, budget) {
   var over = p.c.cost > budget;
   var kids = [
@@ -242,6 +300,8 @@ function scanCard(t, tagText, tagColor, p, budget) {
       statCell("Odds (est.)", p.odds < 1 ? "<1%" : Math.round(p.odds) + "%")
     ])
   ];
+  kids.push(payoffChart({ S: t.spot, K: p.c.k, cost: p.c.cost, iv: p.c.iv, Tr: 0, be: p.be,
+    caption: "Profit or loss on expiry day (" + fmtDate(p.x.date) + ") if the share price is at each level. The green part is profit." }));
   if (over) kids.push(h("div", { class: "small a", text: "Over your " + money(budget) + " limit. Shown so you can see the cost of being near today's price." }));
   if (p.c.oi < 50) kids.push(h("div", { class: "small a", text: "Thin trading (" + p.c.oi + " open contracts), so the price you get may differ." }));
   return h("div", { class: "box", style: "display:flex;flex-direction:column;gap:8px" }, kids);
@@ -292,10 +352,12 @@ function renderTargets(t) {
     return wrap;
   }
   var tDays = daysUntil(tg.date);
+  var reach = h("div", { class: "small", style: "color:#cbd5e1" });
   wrap.appendChild(h("div", { class: "box" }, [
     h("div", { class: "tag dim", text: "YOUR VIEW" }),
     h("div", { class: "big", style: "margin:6px 0", text: t.name + " reaches " + px(tg.price) + " by " + fmtDate(tg.date) }),
     h("div", { class: "small dim", text: "Price now " + px(t.spot) + " · limit per contract " + money(budget) }),
+    reach,
     h("button", { class: "linkbtn", type: "button", style: "width:100%;background:none;cursor:pointer", text: "Edit targets", onclick: function () { go("settings"); } })
   ]));
 
@@ -306,6 +368,11 @@ function renderTargets(t) {
   var exps = t.expiries.filter(function (x) { return x.days >= tDays; }).slice(0, 3);
   if (!exps.length) { empty("Yahoo doesn't list options that far out for " + t.ticker + " yet. Try an earlier date."); return wrap; }
 
+  var atm = exps[0].calls.reduce(function (b, c) { return !b || Math.abs(c.k - t.spot) < Math.abs(b.k - t.spot) ? c : b; }, null);
+  if (atm) {
+    var ch = chanceAbove(t.spot, tg.price, tDays / 365, atm.iv) * 100;
+    reach.textContent = "Chance " + t.ticker + " is above " + px(tg.price) + " on " + fmtDate(tg.date) + " (est.): " + (ch < 1 ? "<1%" : Math.round(ch) + "%");
+  }
   var half = t.spot + (tg.price - t.spot) / 2, cands = [];
   exps.forEach(function (x) {
     var Tr = (x.days - tDays) / 365;
@@ -345,6 +412,8 @@ function renderTargets(t) {
         statCell("Rise needed", ((p.be / t.spot - 1) * 100).toFixed(0) + "%", (p.be / t.spot - 1) * 100 < 10 ? "g" : ((p.be / t.spot - 1) * 100 < 25 ? "a" : "o"))
       ]),
       h("div", { class: "small dim", text: "Odds = the estimated chance " + t.ticker + " finishes above the break-even price when the call expires (same as the Scanner tab). It's not the chance of hitting your target." }),
+      payoffChart({ S: t.spot, K: p.c.k, cost: p.c.cost, iv: p.c.iv, Tr: (p.x.days - tDays) / 365, be: p.be, target: tg.price,
+        caption: "Estimated profit or loss on your target date (" + fmtDate(tg.date) + ") if the share price is at each level." }),
       h("div", { class: "small a", text: p.x.days - tDays < 14 ? "All or nothing: it expires around your target date." : "The extra weeks after your date keep some value if the move comes late." })
     ]);
   }
