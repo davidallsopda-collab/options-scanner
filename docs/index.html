@@ -315,6 +315,8 @@ function renderTargets(t) {
       if (worth <= c.cost) return;
       cands.push({
         c: c, x: x, worth: worth,
+        be: c.k + c.price,
+        odds: chanceAbove(t.spot, c.k + c.price, x.days / 365, c.iv) * 100,
         right: (worth / c.cost - 1) * 100,
         half: (bsCall(half, c.k, Tr, c.iv) * 100 / c.cost - 1) * 100,
         flat: (bsCall(t.spot, c.k, Tr, c.iv) * 100 / c.cost - 1) * 100
@@ -337,6 +339,12 @@ function renderTargets(t) {
       h("div", { class: "small dim", text: "Expires " + fmtDate(p.x.date) }),
       h("div", { class: "small", style: "color:#cbd5e1", text: "If you are right, it is worth about " + money(p.worth) + " (" + (p.worth - p.c.cost >= 0 ? "+" : "") + money(p.worth - p.c.cost) + ") on " + fmtDate(tg.date) + "." }),
       h("div", { class: "grid3" }, [cell("If you're right", p.right), cell("Halfway there", p.half), cell("Goes nowhere", p.flat)]),
+      h("div", { class: "grid3" }, [
+        statCell("Odds (est.)", p.odds < 1 ? "<1%" : Math.round(p.odds) + "%"),
+        statCell("Break-even", px(p.be)),
+        statCell("Rise needed", ((p.be / t.spot - 1) * 100).toFixed(0) + "%", (p.be / t.spot - 1) * 100 < 10 ? "g" : ((p.be / t.spot - 1) * 100 < 25 ? "a" : "o"))
+      ]),
+      h("div", { class: "small dim", text: "Odds = the estimated chance " + t.ticker + " finishes above the break-even price when the call expires (same as the Scanner tab). It's not the chance of hitting your target." }),
       h("div", { class: "small a", text: p.x.days - tDays < 14 ? "All or nothing: it expires around your target date." : "The extra weeks after your date keep some value if the move comes late." })
     ]);
   }
