@@ -50,6 +50,11 @@ async function gh(env, path, opts) {
 }
 
 export default {
+  // Cloudflare's timer: starts a scan at the update times (GitHub's own timer is too unreliable).
+  async scheduled(event, env, ctx) {
+    ctx.waitUntil(gh(env, "/actions/workflows/scan.yml/dispatches", { method: "POST", body: JSON.stringify({ ref: "main" }) }));
+  },
+
   async fetch(request, env) {
     const origin = ALLOWED_ORIGIN;
     if (request.method === "OPTIONS") return reply({}, 204, origin);
