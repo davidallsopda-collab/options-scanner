@@ -36,8 +36,8 @@ function same(a, b) {
   return r === 0;
 }
 
-async function gh(env, path, opts) {
-  return fetch("https://api.github.com/repos/" + REPO + path, {
+async function gh(env, path, opts, repo) {
+  return fetch("https://api.github.com/repos/" + (repo || REPO) + path, {
     ...opts,
     headers: {
       Authorization: "Bearer " + env.GITHUB_TOKEN,
@@ -49,10 +49,35 @@ async function gh(env, path, opts) {
   });
 }
 
+// ---------- Cloudflare's timer (GitHub's own timer is too unreliable) ----------
+// Cron trigger in Cloudflare: */15 13-21 * * 1-5   (every 15 min, weekdays, UTC)
+// Works out New York time itself, so summer/winter clock changes don't matter.
+const PEARS_REPO = "davidallsopda-collab/pears";
+const SCAN_SLOTS = [9 * 60 + 45, 12 * 60 + 30, 15 * 60 + 30];  // Call Scanner: 9:45, 12:30, 3:30pm New York
+const PEARS_FROM = 9 * 60 + 25, PEARS_TO = 16 * 60 + 50;      // Pears: market hours plus one run after the close
+
+function newYorkNow(date) {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/New_York", weekday: "short", hour: "numeric", minute: "numeric", hour12: false,
+  }).formatToParts(date);
+  const get = (t) => parts.find((p) => p.type === t).value;
+  return { day: get("weekday"), mins: (Number(get("hour")) % 24) * 60 + Number(get("minute")) };
+}
+
+function dispatch(env, repo, workflow) {
+  return gh(env, "/actions/workflows/" + workflow + "/dispatches",
+            { method: "POST", body: JSON.stringify({ ref: "main" }) }, repo);
+}
+
 export default {
-  // Cloudflare's timer: starts a scan at the update times (GitHub's own timer is too unreliable).
   async scheduled(event, env, ctx) {
-    ctx.waitUntil(gh(env, "/actions/workflows/scan.yml/dispatches", { method: "POST", body: JSON.stringify({ ref: "main" }) }));
+    const ny = newYorkNow(new Date(event.scheduledTime));
+    if (ny.day === "Sat" || ny.day === "Sun") return;
+    const jobs = [];
+    if (ny.mins >= PEARS_FROM && ny.mins <= PEARS_TO) jobs.push(dispatch(env, PEARS_REPO, "update.yml"));
+    // a dispatched scan always runs in full, so only start it in the 15 minutes after each slot
+    if (SCAN_SLOTS.some((s) => ny.mins >= s && ny.mins < s + 15)) jobs.push(dispatch(env, REPO, "scan.yml"));
+    ctx.waitUntil(Promise.all(jobs));
   },
 
   async fetch(request, env) {
